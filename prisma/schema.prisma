@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  role         UserRoles
+  password     String
+  email        String
+  verifiedUser Boolean
+  Students     Student[]
+  Faculties    Faculty[]
+  Admin        Admin[]
+
+  @@map("users")
+}
+
+model Student {
+  id           String   @id @default(uuid())
+  studentId    String
+  firstName    String
+  lastName     String
+  middleName   String
+  profileImage String
+  gender       String
+  institution  String
+  user         User     @relation(fields: [userId], references: [id])
+  userId       String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("students")
+}
+
+model Faculty {
+  id           String   @id @default(uuid())
+  firstName    String
+  lastName     String
+  middleName   String
+  profileImage String
+  gender       String
+  user         User     @relation(fields: [userId], references: [id])
+  userId       String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("faculties")
+}
+
+model Admin {
+  id           String   @id @default(uuid())
+  firstName    String
+  lastName     String
+  middleName   String
+  profileImage String
+  gender       String
+  user         User     @relation(fields: [userId], references: [id])
+  userId       String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("admins")
+}
+
+model Token {
+  id     String @id @default(uuid())
+  userId String
+  token  String
+
+  @@map("tokens")
+}
+
+enum UserRoles {
+  student
+  faculty
+  admin
+}

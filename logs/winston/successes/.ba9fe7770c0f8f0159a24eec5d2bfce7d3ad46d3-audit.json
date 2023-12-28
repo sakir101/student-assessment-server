@@ -1,0 +1,70 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "D:\\NextLevel\\Assignment\\Assignment-8(prisma sql)\\Book_catallog_backend\\logs\\winston\\successes\\.ba9fe7770c0f8f0159a24eec5d2bfce7d3ad46d3-audit.json",
+    "files": [
+        {
+            "date": 1693882726359,
+            "name": "D:\\NextLevel\\Assignment\\Assignment-8(prisma sql)\\Book_catallog_backend\\logs\\winston\\successes\\phu-2023-05-09-08-success.log",
+            "hash": "c83ac39eb8dc82619532afe31bfb3f357c4832cd23589e1426fef4e0c2fc0e86"
+        },
+        {
+            "date": 1693927538375,
+            "name": "D:\\NextLevel\\Assignment\\Assignment-8(prisma sql)\\Book_catallog_backend\\logs\\winston\\successes\\phu-2023-05-09-21-success.log",
+            "hash": "8305cd65c8a4d13d5173e54a8d527ffc318e95d1d1c31668926e6684c3796549"
+        },
+        {
+            "date": 1693930566387,
+            "name": "D:\\NextLevel\\Assignment\\Assignment-8(prisma sql)\\Book_catallog_backend\\logs\\winston\\successes\\phu-2023-05-09-22-success.log",
+            "hash": "909c46bc39a40bb5663382b9224465eee4cb48e0e9fea8362e82ac2f69ab91cb"
+        },
+        {
+            "date": 1693933932470,
+            "name": "D:\\NextLevel\\Assignment\\Assignment-8(prisma sql)\\Book_catallog_backend\\logs\\winston\\successes\\phu-2023-05-09-23-success.log",
+            "hash": "baad886c1b4d9e95a3ed5b83b821af2232055e7d0c8c334c3f11886ff6042b2b"
+        },
+        {
+            "date": 1693943244906,
+            "name": "D:\\NextLevel\\Assignment\\Assignment-8(prisma sql)\\Book_catallog_backend\\logs\\winston\\successes\\phu-2023-06-09-01-success.log",
+            "hash": "1aae91a7427ac4c0ce63de67188b40f7c8853c9d904b2d428c267ab751f46bff"
+        },
+        {
+            "date": 1693944130560,
+            "name": "D:\\NextLevel\\Assignment\\Assignment-8(prisma sql)\\Book_catallog_backend\\logs\\winston\\successes\\phu-2023-06-09-02-success.log",
+            "hash": "6f6f3022d3806120ff886bf1aafb595ea5f911b2d73ec53c90e81b2af8198026"
+        },
+        {
+            "date": 1693947852658,
+            "name": "D:\\NextLevel\\Assignment\\Assignment-8(prisma sql)\\Book_catallog_backend\\logs\\winston\\successes\\phu-2023-06-09-03-success.log",
+            "hash": "c409116aeade1d497f825dd3140a73783ed9f700d151767a0df7d5d3324b53c2"
+        },
+        {
+            "date": 1694075141357,
+            "name": "D:\\NextLevel\\Assignment\\Assignment-8(prisma sql)\\Book_catallog_backend\\logs\\winston\\successes\\phu-2023-07-09-14-success.log",
+            "hash": "bb208075e72977971e14bef06436ba1a559a5462f1da1bbf90d75b2655456bac"
+        },
+        {
+            "date": 1694091812195,
+            "name": "D:\\NextLevel\\Assignment\\Assignment-8(prisma sql)\\Book_catallog_backend\\logs\\winston\\successes\\phu-2023-07-09-19-success.log",
+            "hash": "a619ae140968b97a86d9030e744c2a4f9b3895464ec4994e22da9835723082bd"
+        },
+        {
+            "date": 1694095252611,
+            "name": "D:\\NextLevel\\Assignment\\Assignment-8(prisma sql)\\Book_catallog_backend\\logs\\winston\\successes\\phu-2023-07-09-20-success.log",
+            "hash": "ec98a4516cd624200249e1aca849ee3f118b68192cec5af92012827bfd50a2ff"
+        },
+        {
+            "date": 1694098886132,
+            "name": "D:\\NextLevel\\Assignment\\Assignment-8(prisma sql)\\Book_catallog_backend\\logs\\winston\\successes\\phu-2023-07-09-21-success.log",
+            "hash": "6d539d9e8f8a3d7ef4fb5c9b0a7e08de128b38336aa8420809418977115c96d6"
+        },
+        {
+            "date": 1694103513975,
+            "name": "D:\\NextLevel\\Assignment\\Assignment-8(prisma sql)\\Book_catallog_backend\\logs\\winston\\successes\\phu-2023-07-09-22-success.log",
+            "hash": "de247fac39e5d864d7c080248c62c64dcac99de6d7cc3d19ec546948ee15acb9"
+        }
+    ],
+    "hashType": "sha256"
+}
