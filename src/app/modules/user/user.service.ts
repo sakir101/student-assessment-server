@@ -61,6 +61,9 @@ const createStudent = async (studentData: Student, userData: User): Promise<Stud
 
             const url = `http://localhost:5000/api/v1/users/${userId}/verify/${token}`;
             sendmail(email, 'verify email', url)
+            if (!sendmail) {
+                throw new ApiError(httpStatus.BAD_REQUEST, "Request again")
+            }
             return result;
 
         }

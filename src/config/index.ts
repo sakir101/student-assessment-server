@@ -14,6 +14,7 @@ export default {
   bycrypt_salt_rounds: process.env.BCRYPT_SALT_ROUNDS,
   email: process.env.EMAIL,
   email_password: process.env.EMAIL_PASSWORD,
+  charset: process.env.charset,
   jwt: {
     secret: process.env.JWT_SECRET,
     refresh_secret: process.env.JWT_REFRESH_SECRET,

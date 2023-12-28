@@ -8,7 +8,7 @@ const createStudentZodSchema = z.object({
         }),
         email: z.string({
             required_error: "Email is required"
-        }),
+        }).email(),
         student: z.object({
             firstName: z.string({
                 required_error: "First name is required"

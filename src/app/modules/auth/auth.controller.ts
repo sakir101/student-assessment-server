@@ -8,6 +8,8 @@ import { AuthService } from "./auth.service";
 
 const loginUser = catchAsync(async (req: Request, res: Response) => {
     const { ...loginData } = req.body;
+
+
     const result = await AuthService.loginUser(loginData)
     const { refreshToken, ...others } = result;
 
@@ -31,9 +33,19 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
 })
 
 const renewPassword = catchAsync(async (req: Request, res: Response) => {
-    const { } = req.body;
-}
+    const { email } = req.body;
+    console.log(email)
+
+    await AuthService.renewPassword(email)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Email send successfully',
+    })
+})
 
 export const AuthController = {
-    loginUser
+    loginUser,
+    renewPassword
 }

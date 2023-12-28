@@ -24,9 +24,6 @@ const verifyEmail = async (userId: string, token: string): Promise<void> => {
         throw new ApiError(httpStatus.NOT_FOUND, 'Token not found')
     }
 
-
-    const { verifiedUser } = userResult
-
     const updateUser = {
         verifiedUser: true
     }

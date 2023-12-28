@@ -14,7 +14,7 @@ model User {
   id           String    @id @default(uuid())
   role         UserRoles
   password     String
-  email        String
+  email        String    @unique
   verifiedUser Boolean
   Students     Student[]
   Faculties    Faculty[]
