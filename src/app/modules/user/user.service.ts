@@ -12,7 +12,7 @@ const createStudent = async (studentData: Student, userData: User): Promise<Stud
 
     if (userData && studentData) {
         const res = mailValidationCheck(userData.email, studentData.institution)
-        console.log(res)
+
         if (!res) {
             throw new ApiError(httpStatus.NOT_ACCEPTABLE, 'Mail is invalid')
         }
@@ -24,18 +24,35 @@ const createStudent = async (studentData: Student, userData: User): Promise<Stud
             Number(config.bycrypt_salt_rounds)
         )
 
-        const userResult = await prisma.user.create({
-            data: userData
-        })
-        if (!userResult) {
-            throw new ApiError(httpStatus.BAD_REQUEST, 'Failed to create user')
-        }
+        const newUser = await prisma.$transaction(async (transactionClient) => {
+            const userResult = await transactionClient.user.create({
+                data: userData
+            })
 
-        else {
+            if (!userResult) {
+                throw new ApiError(httpStatus.BAD_REQUEST, 'Failed to create user')
+            }
+
             studentData.userId = userResult.id
-            const result = await prisma.student.create({
+            const studentResult = await transactionClient.student.create({
                 data: studentData
             })
+
+            if (!studentResult) {
+                throw new ApiError(httpStatus.BAD_REQUEST, 'Failed to create student')
+            }
+
+            const updateUser = {
+                studentId: studentData.studentId
+            }
+
+            await transactionClient.user.update({
+                where: {
+                    id: userResult.id
+                },
+                data: updateUser
+            })
+
             const { id: userId, role, email } = userResult
             const token = jwtHelpers.createToken(
                 { userId, role },
@@ -48,7 +65,7 @@ const createStudent = async (studentData: Student, userData: User): Promise<Stud
             }
 
 
-            const tokenResult = await prisma.token.create({
+            const tokenResult = await transactionClient.token.create({
                 data: {
                     userId,
                     token
@@ -64,9 +81,17 @@ const createStudent = async (studentData: Student, userData: User): Promise<Stud
             if (!sendmail) {
                 throw new ApiError(httpStatus.BAD_REQUEST, "Request again")
             }
-            return result;
 
+            return studentResult
+
+        })
+
+        if (!newUser) {
+            throw new ApiError(httpStatus.BAD_REQUEST, 'Failed to create student')
         }
+
+        return newUser
+
     }
 
 

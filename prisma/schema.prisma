@@ -16,32 +16,37 @@ model User {
   password     String
   email        String    @unique
   verifiedUser Boolean
-  Students     Student[]
-  Faculties    Faculty[]
-  Admin        Admin[]
+  studentId    String?
+  facultyId    String?
+  adminId      String?
+  students     Student[]
+  faculties    Faculty[]
+  admin        Admin[]
 
   @@map("users")
 }
 
 model Student {
-  id           String   @id @default(uuid())
-  studentId    String
-  firstName    String
-  lastName     String
-  middleName   String
-  profileImage String
-  gender       String
-  institution  String
-  user         User     @relation(fields: [userId], references: [id])
-  userId       String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              String            @id @default(uuid())
+  studentId       String
+  firstName       String
+  lastName        String
+  middleName      String
+  profileImage    String
+  gender          String
+  institution     String
+  user            User              @relation(fields: [userId], references: [id])
+  userId          String
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  interestStudent InterestStudent[]
 
   @@map("students")
 }
 
 model Faculty {
   id           String   @id @default(uuid())
+  facultyId    String
   firstName    String
   lastName     String
   middleName   String
@@ -57,6 +62,7 @@ model Faculty {
 
 model Admin {
   id           String   @id @default(uuid())
+  adminId      String
   firstName    String
   lastName     String
   middleName   String
@@ -71,11 +77,33 @@ model Admin {
 }
 
 model Token {
-  id     String @id @default(uuid())
-  userId String
-  token  String
+  id        String   @id @default(uuid())
+  userId    String
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("tokens")
+}
+
+model Interest {
+  id              String            @id @default(uuid())
+  title           String            @unique
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  interestStudent InterestStudent[]
+
+  @@map("interests")
+}
+
+model InterestStudent {
+  interestId String
+  interest   Interest @relation(fields: [interestId], references: [id])
+  studentId  String
+  student    Student  @relation(fields: [studentId], references: [id])
+
+  @@id([interestId, studentId])
+  @@map("student_interests")
 }
 
 enum UserRoles {

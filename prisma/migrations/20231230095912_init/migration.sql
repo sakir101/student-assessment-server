@@ -8,6 +8,9 @@ CREATE TABLE "users" (
     "password" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "verifiedUser" BOOLEAN NOT NULL,
+    "studentId" TEXT,
+    "facultyId" TEXT,
+    "adminId" TEXT,
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
@@ -32,6 +35,7 @@ CREATE TABLE "students" (
 -- CreateTable
 CREATE TABLE "faculties" (
     "id" TEXT NOT NULL,
+    "facultyId" TEXT NOT NULL,
     "firstName" TEXT NOT NULL,
     "lastName" TEXT NOT NULL,
     "middleName" TEXT NOT NULL,
@@ -47,6 +51,7 @@ CREATE TABLE "faculties" (
 -- CreateTable
 CREATE TABLE "admins" (
     "id" TEXT NOT NULL,
+    "adminId" TEXT NOT NULL,
     "firstName" TEXT NOT NULL,
     "lastName" TEXT NOT NULL,
     "middleName" TEXT NOT NULL,
@@ -64,8 +69,20 @@ CREATE TABLE "tokens" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
     "token" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "tokens_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "interests" (
+    "id" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "interests_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
