@@ -85,8 +85,19 @@ CREATE TABLE "interests" (
     CONSTRAINT "interests_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "student_interests" (
+    "interestId" TEXT NOT NULL,
+    "studentId" TEXT NOT NULL,
+
+    CONSTRAINT "student_interests_pkey" PRIMARY KEY ("interestId","studentId")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "interests_title_key" ON "interests"("title");
 
 -- AddForeignKey
 ALTER TABLE "students" ADD CONSTRAINT "students_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -96,3 +107,9 @@ ALTER TABLE "faculties" ADD CONSTRAINT "faculties_userId_fkey" FOREIGN KEY ("use
 
 -- AddForeignKey
 ALTER TABLE "admins" ADD CONSTRAINT "admins_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "student_interests" ADD CONSTRAINT "student_interests_interestId_fkey" FOREIGN KEY ("interestId") REFERENCES "interests"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "student_interests" ADD CONSTRAINT "student_interests_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "students"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
