@@ -1,16 +1,32 @@
-import { Student, User } from "@prisma/client";
 import bcrypt from 'bcrypt';
+import { Request } from "express";
 import httpStatus from "http-status";
 import { Secret } from "jsonwebtoken";
 import config from "../../../config";
 import ApiError from "../../../errors/ApiError";
+import { FileUploadHelper } from "../../../helpers/FileUploadHelper";
 import { jwtHelpers } from "../../../helpers/jwtHelpers";
+import { ICloudinaryResponse, IUploadFile } from "../../../interfaces/file";
 import prisma from "../../../shared/prisma";
 import { mailValidationCheck, sendmail } from "./user.util";
 
-const createStudent = async (studentData: Student, userData: User): Promise<Student | undefined> => {
+const createStudent = async (req: Request) => {
+
+
+    const file = req.file as IUploadFile;
+    const uploadImage: ICloudinaryResponse = await FileUploadHelper.uploadToCloudinary(file)
+
+
+    const { student: studentData, ...userData } = req.body
+
+    console.log(studentData)
 
     if (userData && studentData) {
+
+        if (uploadImage) {
+            studentData.profileImage = uploadImage.secure_url
+        }
+
         const res = mailValidationCheck(userData.email, studentData.institution)
 
         if (!res) {
@@ -76,7 +92,7 @@ const createStudent = async (studentData: Student, userData: User): Promise<Stud
                 throw new ApiError(httpStatus.BAD_REQUEST, 'User signup failed!')
             }
 
-            const url = `http://localhost:5000/api/v1/users/${userId}/verify/${token}`;
+            const url = `<p>Please click here <a href="http://localhost:5000/api/v1/users/${userId}/verify/${token}">Link</a> to verify your email</p>`;
             sendmail(email, 'verify email', url)
             if (!sendmail) {
                 throw new ApiError(httpStatus.BAD_REQUEST, "Request again")
@@ -98,6 +114,10 @@ const createStudent = async (studentData: Student, userData: User): Promise<Stud
 
 }
 
+
+
+
 export const UserService = {
-    createStudent
+    createStudent,
+
 }

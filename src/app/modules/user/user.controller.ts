@@ -6,9 +6,9 @@ import { UserService } from "./user.service";
 
 const createStudent = catchAsync(async (req: Request, res: Response) => {
 
-    const { student, ...userData } = req.body
+    // const { student, ...userData } = req.body
 
-    const result = await UserService.createStudent(student, userData)
+    const result = await UserService.createStudent(req)
 
     sendResponse(res, {
         statusCode: httpStatus.OK,
@@ -20,6 +20,8 @@ const createStudent = catchAsync(async (req: Request, res: Response) => {
 
 })
 
+
 export const UserController = {
-    createStudent
+    createStudent,
+
 }

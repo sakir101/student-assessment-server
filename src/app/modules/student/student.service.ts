@@ -35,6 +35,46 @@ const assignInterest = async (
     return assignInterestData
 }
 
+const deleteInterest = async (
+    id: string,
+    payload: string[]
+): Promise<InterestStudent[] | ''> => {
+    const existingInterests = await prisma.interestStudent.findMany({
+        where: {
+            studentId: id,
+            interestId: {
+                in: payload,
+            },
+        },
+    });
+
+    if (existingInterests) {
+        await prisma.interestStudent.deleteMany({
+            where: {
+                studentId: id,
+                interestId: {
+                    in: payload,
+                },
+
+            }
+        });
+        const assignInterestData = await prisma.interestStudent.findMany({
+            where: {
+                studentId: id
+            },
+            include: {
+                interest: true
+            }
+        })
+        return assignInterestData
+    }
+
+    return ""
+
+
+}
+
 export const StudentService = {
-    assignInterest
+    assignInterest,
+    deleteInterest
 }

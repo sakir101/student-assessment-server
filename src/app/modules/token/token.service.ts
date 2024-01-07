@@ -1,7 +1,9 @@
 
-import httpStatus from "http-status"
-import ApiError from "../../../errors/ApiError"
-import prisma from "../../../shared/prisma"
+import httpStatus from "http-status";
+import ApiError from "../../../errors/ApiError";
+import prisma from "../../../shared/prisma";
+
+
 
 const verifyEmail = async (userId: string, token: string): Promise<void> => {
     const userResult = await prisma.user.findUnique({
@@ -40,6 +42,10 @@ const verifyEmail = async (userId: string, token: string): Promise<void> => {
             id: tokenData.id
         }
     })
+
+
+
+
 }
 
 export const TokenService = {

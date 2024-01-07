@@ -1,9 +1,8 @@
 import nodemailer from 'nodemailer';
 import config from '../../../config';
 
-export const sendmail = async (email, subject, text): Promise<void> => {
-    //1. create an email transporter.
-    //SMTP (Simple Mail Transfer Protocol)
+export const sendmail = async (email: string, subject: string, text: string): Promise<void> => {
+
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -16,17 +15,17 @@ export const sendmail = async (email, subject, text): Promise<void> => {
     })
 
 
-    //2.configure email content.
+
     const mailOptions = {
         from: config.email,
         to: email,
         subject: subject,
-        text: text,
+        html: text,
     }
 
     //3. send email
     try {
-        const result = await transporter.sendMail(mailOptions);
+        await transporter.sendMail(mailOptions);
         console.log('Eamil sent successfully')
     } catch (error) {
         console.log('Email send failed with error:', error)

@@ -17,6 +17,20 @@ const assignInterest = catchAsync(async (req: Request, res: Response) => {
     })
 })
 
+const deleteInterest = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const result = await StudentService.deleteInterest(id, req.body.interest)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Delete interest data successfully",
+        data: result
+    })
+})
+
 export const StudentController = {
-    assignInterest
+    assignInterest,
+    deleteInterest
 }
