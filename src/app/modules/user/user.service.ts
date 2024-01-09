@@ -14,18 +14,27 @@ const createStudent = async (req: Request) => {
 
 
     const file = req.file as IUploadFile;
-    const uploadImage: ICloudinaryResponse = await FileUploadHelper.uploadToCloudinary(file)
 
 
     const { student: studentData, ...userData } = req.body
 
-    console.log(studentData)
+
 
     if (userData && studentData) {
-
-        if (uploadImage) {
-            studentData.profileImage = uploadImage.secure_url
+        if (file === undefined) {
+            studentData.profileImage = 'http'
         }
+
+        else {
+            const uploadImage: ICloudinaryResponse = await FileUploadHelper.uploadToCloudinary(file)
+
+            if (uploadImage) {
+                studentData.profileImage = uploadImage.secure_url
+            }
+        }
+
+
+
 
         const res = mailValidationCheck(userData.email, studentData.institution)
 

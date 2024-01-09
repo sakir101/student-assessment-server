@@ -50,7 +50,6 @@ const fileUploadZodSchema = z.object({
         middleName: z.string({
             required_error: "Middle name is required"
         }),
-        profileImage: z.string().optional(),
         gender: z.enum([...gender] as [string, ...string[]], {
             required_error: 'Gender is required'
         }),

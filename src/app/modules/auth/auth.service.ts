@@ -5,6 +5,7 @@ import config from "../../../config";
 import ApiError from "../../../errors/ApiError";
 import { jwtHelpers } from "../../../helpers/jwtHelpers";
 import prisma from "../../../shared/prisma";
+import { sendmail } from '../user/user.util';
 import { ILoginUser, ILoginUserResponse } from "./auth.interface";
 import { isPasswordMatched } from "./auth.utils";
 
@@ -98,11 +99,11 @@ const renewPassword = async (email: string): Promise<void> => {
 
     console.log(userData)
 
-    // sendmail(email, 'Your new password', `Here is your new password: ${password}`)
+    sendmail(email, 'Your new password', `Here is your new password: ${password}`)
 
-    // if (!sendmail) {
-    //     throw new ApiError(httpStatus.BAD_REQUEST, "Request again")
-    // }
+    if (!sendmail) {
+        throw new ApiError(httpStatus.BAD_REQUEST, "Request again")
+    }
 
 }
 
