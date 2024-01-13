@@ -1,13 +1,28 @@
 import { InterestStudent } from "@prisma/client";
+import httpStatus from "http-status";
+import ApiError from "../../../errors/ApiError";
 import prisma from "../../../shared/prisma";
 
 const assignInterest = async (
     id: string,
     payload: string[]
 ): Promise<InterestStudent[]> => {
+    console.log(id, payload)
+
+    const studentInfo = await prisma.student.findFirst({
+        where: {
+            userId: id
+        }
+    })
+
+    if (!studentInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Student does not exist")
+    }
+
+    const { id: sId } = studentInfo
     const existingInterests = await prisma.interestStudent.findMany({
         where: {
-            studentId: id,
+            studentId: sId,
             interestId: {
                 in: payload,
             },
@@ -21,12 +36,12 @@ const assignInterest = async (
     await prisma.interestStudent.createMany({
         data: newInterestsToCreate.map((interestId) => ({
             interestId,
-            studentId: id,
+            studentId: sId,
         })),
     });
     const assignInterestData = await prisma.interestStudent.findMany({
         where: {
-            studentId: id
+            studentId: sId
         },
         include: {
             interest: true

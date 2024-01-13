@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import httpStatus from "http-status";
 import { Secret } from "jsonwebtoken";
 import config from "../../../config";
+import { ENUM_USER_ROLE } from '../../../enums/user';
 import ApiError from "../../../errors/ApiError";
 import { jwtHelpers } from "../../../helpers/jwtHelpers";
 import prisma from "../../../shared/prisma";
@@ -36,23 +37,80 @@ const loginUser = async (payload: ILoginUser): Promise<ILoginUserResponse> => {
 
 
     const { id: userId, role } = isUserExist
-    const accessToken = jwtHelpers.createToken(
-        { userId, role },
-        config.jwt.secret as Secret,
-        config.jwt.expires_in as string
-    )
 
-    const refreshToken = jwtHelpers.createToken(
-        { userId, role },
-        config.jwt.refresh_secret as Secret,
-        config.jwt.refresh_expires_in as string
-    )
+    let accessToken = ""
+    let refreshToken = ""
+
+    if (role === ENUM_USER_ROLE.STUDENT) {
+
+        accessToken = jwtHelpers.createToken(
+            { userId, role },
+            config.jwt.student_secret as Secret,
+            config.jwt.expires_in as string
+        )
+
+        refreshToken = jwtHelpers.createToken(
+            { userId, role },
+            config.jwt.student_refresh_secret as Secret,
+            config.jwt.refresh_expires_in as string
+        )
+
+
+    }
+
+    if (role === ENUM_USER_ROLE.FACULTY) {
+        accessToken = jwtHelpers.createToken(
+            { userId, role },
+            config.jwt.faculty_secret as Secret,
+            config.jwt.expires_in as string
+        )
+
+        refreshToken = jwtHelpers.createToken(
+            { userId, role },
+            config.jwt.faculty_refresh_secret as Secret,
+            config.jwt.refresh_expires_in as string
+        )
+    }
+
+    if (role === ENUM_USER_ROLE.ADMIN) {
+        accessToken = jwtHelpers.createToken(
+            { userId, role },
+            config.jwt.admin_secret as Secret,
+            config.jwt.expires_in as string
+        )
+
+        refreshToken = jwtHelpers.createToken(
+            { userId, role },
+            config.jwt.admin_refresh_secret as Secret,
+            config.jwt.refresh_expires_in as string
+        )
+    }
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    if (role === ENUM_USER_ROLE.SUPER_ADMIN) {
+        accessToken = jwtHelpers.createToken(
+            { userId, role },
+            config.jwt.super_admin_secret as Secret,
+            config.jwt.expires_in as string
+        )
+
+        refreshToken = jwtHelpers.createToken(
+            { userId, role },
+            config.jwt.super_admin_refresh_secret as Secret,
+            config.jwt.refresh_expires_in as string
+        )
+    }
+
+
 
 
     return {
         accessToken,
         refreshToken
     }
+
+
 
 }
 

@@ -1,17 +1,34 @@
 import axios from 'axios';
+import httpStatus from 'http-status';
+import ApiError from '../../../errors/ApiError';
 import prisma from '../../../shared/prisma';
 
 const careerPrediction = async (id: string) => {
     try {
+        const studentInfo = await prisma.student.findFirst({
+            where: {
+                userId: id
+            }
+        })
+
+        if (!studentInfo) {
+            throw new ApiError(httpStatus.NOT_FOUND, "Student does not exist")
+        }
+
+        const { id: sId } = studentInfo
         const assignInterestData = await prisma.interestStudent.findMany({
             where: {
-                studentId: id
+                studentId: sId
             },
             include: {
                 interest: true
             }
         })
         const interest: string[] = [];
+
+        if (!assignInterestData) {
+            return new ApiError(httpStatus.NOT_FOUND, "Student does not select any interest")
+        }
 
         if (assignInterestData) {
             const interestIds: string[] = [];
@@ -34,7 +51,7 @@ const careerPrediction = async (id: string) => {
             })
         }
 
-        const skill: string[] = [];
+        // const skill: string[] = [];
 
         const key = 'key'; // Define the key name
 
@@ -46,14 +63,13 @@ const careerPrediction = async (id: string) => {
             [key]: concatenatedInterests
         };
 
-        console.log(obj);
+        // console.log(obj);
 
-        const combinedArray = [...new Set([...skill, ...interest])];
+        // const combinedArray = [...new Set([...skill, ...interest])];
 
         // console.log(combinedArray);
 
         const interestData = obj[key];
-        console.log(interestData);
         const apiUrl = "http://127.0.0.1:5001/careerPredict";
 
 
@@ -66,8 +82,7 @@ const careerPrediction = async (id: string) => {
         return prediction
 
     } catch (error) {
-        console.log("failed");
-        return error
+        throw new ApiError(httpStatus.NOT_FOUND, "Failed to analysis data")
     }
 }
 

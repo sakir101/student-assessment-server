@@ -6,7 +6,6 @@ import { StudentService } from "./student.service";
 
 const assignInterest = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
-
     const result = await StudentService.assignInterest(id, req.body.interest)
 
     sendResponse(res, {
