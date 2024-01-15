@@ -26,9 +26,11 @@ const careerPrediction = async (id: string) => {
         })
         const interest: string[] = [];
 
-        if (!assignInterestData) {
-            return new ApiError(httpStatus.NOT_FOUND, "Student does not select any interest")
+
+        if (assignInterestData.length === 0) {
+            throw new ApiError(httpStatus.NOT_FOUND, "Student did not select any interest");
         }
+
 
         if (assignInterestData) {
             const interestIds: string[] = [];
