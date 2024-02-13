@@ -30,7 +30,7 @@ const createStudentZodSchema = z.object({
         })
     })
 })
-const fileUploadZodSchema = z.object({
+const studentFileUploadZodSchema = z.object({
     password: z.string({
         required_error: "Password is required"
     }),
@@ -47,9 +47,6 @@ const fileUploadZodSchema = z.object({
         lastName: z.string({
             required_error: "Last name is required"
         }),
-        middleName: z.string({
-            required_error: "Middle name is required"
-        }),
         gender: z.enum([...gender] as [string, ...string[]], {
             required_error: 'Gender is required'
         }),
@@ -60,8 +57,39 @@ const fileUploadZodSchema = z.object({
     })
 
 })
+const facultyFileUploadZodSchema = z.object({
+    password: z.string({
+        required_error: "Password is required"
+    }),
+    email: z.string({
+        required_error: "Email is required"
+    }).email(),
+    faculty: z.object({
+        facultyId: z.string({
+            required_error: "Faculty Id is required"
+        }),
+        firstName: z.string({
+            required_error: "First name is required"
+        }),
+        lastName: z.string({
+            required_error: "Last name is required"
+        }),
+        gender: z.enum([...gender] as [string, ...string[]], {
+            required_error: 'Gender is required'
+        }),
+        institution: z.enum([...institution] as [string, ...string[]], {
+            required_error: 'Institution is required'
+        }),
+        contactNum: z.string({
+            required_error: "Contact Number is required"
+        }),
+
+    })
+
+})
 
 export const UserValidation = {
     createStudentZodSchema,
-    fileUploadZodSchema
+    studentFileUploadZodSchema,
+    facultyFileUploadZodSchema
 }

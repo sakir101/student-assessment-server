@@ -22,7 +22,7 @@ const createStudent = async (req: Request) => {
 
     if (userData && studentData) {
         if (file === undefined) {
-            studentData.profileImage = 'http'
+            studentData.profileImage = 'https://res.cloudinary.com/dporza1qj/image/upload/v1707104604/profile_sllerv.png'
         }
 
         else {
@@ -81,7 +81,7 @@ const createStudent = async (req: Request) => {
             const { id: userId, role, email } = userResult
             const token = jwtHelpers.createToken(
                 { userId, role },
-                config.jwt.secret as Secret,
+                config.jwt.student_secret as Secret,
                 config.jwt.expires_in as string
             )
 
@@ -124,9 +124,86 @@ const createStudent = async (req: Request) => {
 }
 
 
+const createFaculty = async (req: Request) => {
+
+
+    const file = req.file as IUploadFile;
+
+
+    const { faculty: facultyData, ...userData } = req.body
+
+
+
+    if (userData && facultyData) {
+        if (file === undefined) {
+            facultyData.profileImage = 'https://res.cloudinary.com/dporza1qj/image/upload/v1707104604/profile_sllerv.png'
+        }
+
+        else {
+            const uploadImage: ICloudinaryResponse = await FileUploadHelper.uploadToCloudinary(file)
+
+            if (uploadImage) {
+                facultyData.profileImage = uploadImage.secure_url
+            }
+        }
+
+
+        userData.verifiedUser = false
+        userData.role = 'faculty'
+        userData.password = await bcrypt.hash(
+            userData.password,
+            Number(config.bycrypt_salt_rounds)
+        )
+
+        const newUser = await prisma.$transaction(async (transactionClient) => {
+            const userResult = await transactionClient.user.create({
+                data: userData
+            })
+
+            if (!userResult) {
+                throw new ApiError(httpStatus.BAD_REQUEST, 'Failed to create user')
+            }
+
+            facultyData.userId = userResult.id
+            const facultyResult = await transactionClient.faculty.create({
+                data: facultyData
+            })
+
+            if (!facultyResult) {
+                throw new ApiError(httpStatus.BAD_REQUEST, 'Failed to create faculty')
+            }
+
+            const updateUser = {
+                facultyId: facultyData.facultyId
+            }
+
+            await transactionClient.user.update({
+                where: {
+                    id: userResult.id
+                },
+                data: updateUser
+            })
+
+            return facultyResult
+
+        })
+
+        if (!newUser) {
+            throw new ApiError(httpStatus.BAD_REQUEST, 'Failed to create faculty')
+        }
+
+        return newUser
+
+    }
+
+
+
+}
+
+
 
 
 export const UserService = {
     createStudent,
-
+    createFaculty
 }
