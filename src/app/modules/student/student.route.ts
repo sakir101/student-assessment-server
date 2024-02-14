@@ -10,10 +10,19 @@ router.get('/:id',
 router.get('/getInterest/:id',
     StudentController.getAssignInterest)
 
+router.get('/getEnrolledFaculties/:id',
+    StudentController.getEnrolledFaculties)
+
 router.post('/:id/assign-interests',
     StudentController.assignInterest)
 
 router.post('/:id/delete-interests',
     StudentController.deleteInterest)
+
+router.post('/:id/enroll-faculties',
+    StudentController.enrollFaculties)
+
+router.post('/:id/unenroll-faculty',
+    StudentController.unenrollFaculty)
 
 export const StudentRoutes = router

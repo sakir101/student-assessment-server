@@ -27,7 +27,7 @@ model User {
 }
 
 model Student {
-  id           String            @id @default(uuid())
+  id           String              @id @default(uuid())
   studentId    String
   firstName    String
   lastName     String
@@ -35,17 +35,18 @@ model Student {
   profileImage String
   gender       String
   institution  String
-  user         User              @relation(fields: [userId], references: [id])
+  user         User                @relation(fields: [userId], references: [id])
   userId       String
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
   interests    InterestStudent[]
+  faculties    FacultyEnrollment[]
 
   @@map("students")
 }
 
 model Faculty {
-  id              String            @id @default(uuid())
+  id              String              @id @default(uuid())
   facultyId       String
   firstName       String
   lastName        String
@@ -54,11 +55,12 @@ model Faculty {
   contactNum      String
   profileImage    String
   gender          String
-  user            User              @relation(fields: [userId], references: [id])
+  user            User                @relation(fields: [userId], references: [id])
   userId          String
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
   InterestFaculty InterestFaculty[]
+  students        FacultyEnrollment[]
 
   @@map("faculties")
 }
@@ -124,4 +126,12 @@ enum UserRoles {
   student
   faculty
   admin
+}
+
+model FacultyEnrollment {
+  id        String  @id @default(uuid())
+  student   Student @relation(fields: [studentId], references: [id])
+  studentId String
+  faculty   Faculty @relation(fields: [facultyId], references: [id])
+  facultyId String
 }

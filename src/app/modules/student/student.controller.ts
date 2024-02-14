@@ -3,6 +3,7 @@ import httpStatus from "http-status";
 import catchAsync from "../../../shared/catchAsync";
 import pick from "../../../shared/pick";
 import sendResponse from "../../../shared/sendResponse";
+import { facultyFilterableFields } from "../faculty/faculty.constant";
 import { interestFilterableFields } from "../interest/interest.constant";
 import { StudentService } from "./student.service";
 
@@ -59,9 +60,52 @@ const getAssignInterest = catchAsync(async (req: Request, res: Response) => {
     })
 })
 
+const enrollFaculties = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await StudentService.enrollFaculties(id, req.body.faculty)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Faculty enrolled successfully",
+        data: result
+    })
+})
+
+const unenrollFaculty = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const result = await StudentService.unenrollFaculty(id, req.body.faculty)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Faculty unenrolled successfully",
+        data: result
+    })
+})
+
+const getEnrolledFaculties = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const filters = pick(req.query, facultyFilterableFields)
+    const options = pick(req.query, ['size', 'page', 'sortBy', 'sortOrder'])
+    const result = await StudentService.getEnrolledFaculties(id, filters, options)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Enrolled faculties retrieved successfully",
+        meta: result.meta,
+        data: result.data
+    })
+})
+
 export const StudentController = {
     getStudentByUserId,
     assignInterest,
     deleteInterest,
-    getAssignInterest
+    getAssignInterest,
+    enrollFaculties,
+    unenrollFaculty,
+    getEnrolledFaculties
 }
