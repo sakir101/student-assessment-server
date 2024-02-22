@@ -41,6 +41,7 @@ model Student {
   updatedAt    DateTime            @updatedAt
   interests    InterestStudent[]
   faculties    FacultyEnrollment[]
+  taskStudent  TaskStudent[]
 
   @@map("students")
 }
@@ -61,6 +62,7 @@ model Faculty {
   updatedAt       DateTime            @updatedAt
   InterestFaculty InterestFaculty[]
   students        FacultyEnrollment[]
+  taskFaculty     TaskFaculty[]
 
   @@map("faculties")
 }
@@ -134,4 +136,48 @@ model FacultyEnrollment {
   studentId String
   faculty   Faculty @relation(fields: [facultyId], references: [id])
   facultyId String
+
+  @@map("faculty_enrollment")
+}
+
+model Task {
+  id          String        @id @default(uuid())
+  title       String
+  description String
+  solution    String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  hint        TaskHint[]
+  students    TaskStudent[]
+  faculties   TaskFaculty[]
+}
+
+model TaskHint {
+  id          String @id @default(uuid())
+  description String
+  task        Task   @relation(fields: [taskId], references: [id])
+  taskId      String
+
+  @@map("task_hint")
+}
+
+model TaskStudent {
+  taskId    String
+  task      Task    @relation(fields: [taskId], references: [id])
+  solution  String?
+  studentId String
+  student   Student @relation(fields: [studentId], references: [id])
+
+  @@id([taskId, studentId])
+  @@map("student_task")
+}
+
+model TaskFaculty {
+  taskId    String
+  task      Task    @relation(fields: [taskId], references: [id])
+  facultyId String
+  faculty   Faculty @relation(fields: [facultyId], references: [id])
+
+  @@id([taskId, facultyId])
+  @@map("faculty_task")
 }

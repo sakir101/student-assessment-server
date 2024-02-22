@@ -4,6 +4,7 @@ import { CareerRoutes } from '../modules/careerPredict/careerPredict.route';
 import { FacultyRoutes } from '../modules/faculty/faculty.route';
 import { InterestRoutes } from '../modules/interest/interest.route';
 import { StudentRoutes } from '../modules/student/student.route';
+import { TaskRoutes } from '../modules/task/task.route';
 import { TokenRoutes } from '../modules/token/token.route';
 import { UserRoutes } from '../modules/user/user.route';
 
@@ -39,6 +40,10 @@ const moduleRoutes = [
   {
     path: "/faculties",
     route: FacultyRoutes
+  },
+  {
+    path: "/tasks",
+    route: TaskRoutes
   },
 ];
 

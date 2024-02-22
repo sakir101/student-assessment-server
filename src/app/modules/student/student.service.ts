@@ -299,7 +299,7 @@ const unenrollFaculty = async (
     });
 
     if (existingEnrolledFaculties) {
-        await prisma.facultyEnrollment.deleteMany({
+        const res = await prisma.facultyEnrollment.deleteMany({
             where: {
                 studentId: sId,
                 facultyId: {
@@ -308,6 +308,9 @@ const unenrollFaculty = async (
 
             }
         });
+        if (!res) {
+            throw new ApiError(httpStatus.NOT_FOUND, "Faculty Unenrolled Failed")
+        }
         const enrolledFacultiesData = await prisma.facultyEnrollment.findMany({
             where: {
                 studentId: sId
