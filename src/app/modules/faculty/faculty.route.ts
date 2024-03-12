@@ -17,6 +17,12 @@ router.get('/:id/getSpecificFacultyTask',
 router.get('/:id/:taskId',
     FacultyController.getSingleSpecificFacultyTask)
 
+router.get('/getAssignTaskStudents/:id/:taskId',
+    FacultyController.getAssignTaskStudent)
+
+router.get('/getUnassignTaskStudents/:id/:taskId',
+    FacultyController.getUnassignTaskStudent)
+
 router.patch('/:id/:taskId',
     validateRequest(TaskValidation.update),
     FacultyController.updateSingleSpecificFacultyTask)
@@ -32,7 +38,16 @@ router.post('/:id/:taskId',
     validateRequest(TaskValidation.assignTaskHint),
     FacultyController.assignTaskHint)
 
+router.post('/assignTask/:id/:taskId',
+    FacultyController.assignTask)
+
+router.post('/unassignTask/:id/:taskId',
+    FacultyController.unassignTask)
+
 router.delete('/:taskId/:hintId',
     FacultyController.removeTaskHint)
+
+router.delete('/removeTask/:id/:taskId',
+    FacultyController.removeSingleSpecificFacultyTask)
 
 export const FacultyRoutes = router

@@ -200,7 +200,7 @@ const getSpecificFaculties = async (
         }
     });
 
-    console.log(result)
+
 
     const total = await prisma.faculty.count({ where: whereConditions });
 
@@ -727,6 +727,565 @@ const removeTaskHint = async (
 
 }
 
+const assignTask = async (
+    id: string,
+    taskId: string,
+    payload: string[]
+): Promise<Task | null> => {
+
+    const facultyInfo = await prisma.faculty.findFirst({
+        where: {
+            userId: id
+        }
+    })
+
+    if (!facultyInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Faculty does not exist")
+    }
+
+    const { id: fId } = facultyInfo
+
+    const taskFaculty = await prisma.taskFaculty.findUnique({
+        where: {
+            taskId_facultyId: {
+                taskId: taskId,
+                facultyId: fId
+            }
+        },
+        include: {
+            task: true
+        }
+    });
+
+    if (!taskFaculty) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Task not found for this faculty");
+    }
+    const existingEnrolledStudents = await prisma.facultyEnrollment.findMany({
+        where: {
+            facultyId: fId,
+            studentId: {
+                in: payload,
+            },
+        },
+    });
+
+
+    const enrolledStudentsIds = existingEnrolledStudents.map((student) => student.studentId);
+
+
+
+    const unenrolledStudentsIds = payload.filter((studentId) => !enrolledStudentsIds.includes(studentId));
+
+    if (unenrolledStudentsIds.length > 0) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Students not found for this faculty");
+    }
+
+    const assignTaskStudents = await prisma.taskStudent.createMany({
+        data: enrolledStudentsIds.map((studentId) => ({
+            studentId,
+            taskId: taskId,
+        })),
+    });
+
+    if (!assignTaskStudents) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Assign task failed");
+    }
+
+    const task = await prisma.task.findUnique({
+        where: {
+            id: taskId
+        },
+        include: {
+            hint: true,
+            students: true
+        }
+    });
+
+    if (!task) {
+        return null;
+    }
+
+    return task
+}
+
+const getAssignTaskStudent = async (
+    id: string,
+    taskId: string,
+    filters: IFacultyFilterRequest,
+    options: IPaginationOptions
+): Promise<IGenericResponse<Student[]>> => {
+    const { page, limit, skip } = paginationHelpers.calculatePagination(options);
+    const { searchTerm, ...filterData } = filters
+
+    const facultyInfo = await prisma.faculty.findFirst({
+        where: {
+            userId: id
+        }
+    })
+
+    if (!facultyInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Faculty does not exist")
+    }
+
+    const { id: fId } = facultyInfo
+
+    const taskFaculty = await prisma.taskFaculty.findUnique({
+        where: {
+            taskId_facultyId: {
+                taskId: taskId,
+                facultyId: fId
+            }
+        },
+        include: {
+            task: true
+        }
+    });
+
+    if (!taskFaculty) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Task not found for this faculty");
+    }
+
+    const taskAssignStudents = await prisma.taskStudent.findMany({
+        where: {
+            taskId
+        },
+        include: {
+            student: true
+        }
+    })
+
+    if (!taskAssignStudents) {
+        throw new ApiError(httpStatus.NOT_FOUND, "No student assign in this task");
+    }
+
+    const andConditions = []
+    if (searchTerm) {
+        andConditions.push({
+            OR: studentSearchableFields.map((field) => ({
+                [field]: {
+                    contains: searchTerm,
+                    mode: 'insensitive'
+                }
+            }))
+        })
+    }
+
+    if (Object.keys(filterData).length > 0) {
+        andConditions.push({
+            AND: [
+                ...Object.entries(filterData)
+                    .filter(([key]) => key !== 'interests')
+                    .map(([key, value]) => ({
+                        [key]: value
+                    })),
+                ...Object.entries(filterData)
+                    .filter(([key]) => key === 'interests')
+                    .map(([key, value]) => {
+                        if (!Array.isArray(value)) {
+                            value = [value];
+                        }
+                        return {
+                            [key]: {
+                                some: {
+                                    interest: {
+                                        title: {
+                                            in: value
+                                        }
+                                    }
+                                }
+                            }
+                        };
+                    })
+            ]
+        });
+    }
+
+    const whereConditions: Prisma.StudentWhereInput =
+        andConditions.length > 0 ? { AND: andConditions } : {}
+
+
+
+    const assignTaskStudentIds: string[] = [];
+
+    taskAssignStudents.forEach(item => {
+        assignTaskStudentIds.push(item.studentId);
+    });
+
+    const result = await prisma.student.findMany({
+        where: {
+            AND: [
+                { id: { in: assignTaskStudentIds } },
+                whereConditions
+            ]
+        },
+        skip,
+        take: limit,
+        orderBy: options.sortBy && options.sortOrder
+            ? {
+                [options.sortBy]: options.sortOrder
+            } : {
+                firstName: 'asc'
+            }
+    });
+
+    const total = await prisma.taskStudent.count({
+        where: {
+            taskId
+        },
+    });
+
+
+    return {
+        meta: {
+            total,
+            page,
+            limit
+        },
+        data: result
+    };
+
+}
+
+const getUnassignTaskStudent = async (
+    id: string,
+    taskId: string,
+    filters: IFacultyFilterRequest,
+    options: IPaginationOptions
+): Promise<IGenericResponse<Student[]>> => {
+    const { page, limit, skip } = paginationHelpers.calculatePagination(options);
+    const { searchTerm, ...filterData } = filters
+
+    const facultyInfo = await prisma.faculty.findFirst({
+        where: {
+            userId: id
+        }
+    })
+
+    if (!facultyInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Faculty does not exist")
+    }
+
+    const { id: fId } = facultyInfo
+
+    const taskFaculty = await prisma.taskFaculty.findUnique({
+        where: {
+            taskId_facultyId: {
+                taskId: taskId,
+                facultyId: fId
+            }
+        },
+        include: {
+            task: true
+        }
+    });
+
+    if (!taskFaculty) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Task not found for this faculty");
+    }
+
+    const taskAssignStudents = await prisma.taskStudent.findMany({
+        where: {
+            taskId
+        },
+        include: {
+            student: true
+        }
+    })
+
+    if (!taskAssignStudents) {
+        throw new ApiError(httpStatus.NOT_FOUND, "No student assign in this task");
+    }
+
+    const existingEnrolledStudents = await prisma.facultyEnrollment.findMany({
+        where: {
+            facultyId: fId
+        },
+        include: {
+            student: true
+        }
+    })
+
+
+
+
+    if (existingEnrolledStudents.length === 0) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Faculty has no enrolled students");
+    }
+
+    const existingEnrolledStudentIds = existingEnrolledStudents.map((student) => student.studentId);
+
+    const assignTaskStudentIds: string[] = [];
+
+    taskAssignStudents.forEach(item => {
+        assignTaskStudentIds.push(item.studentId);
+    });
+
+    const studentEnrolledNotAssignTaskIds = existingEnrolledStudentIds.filter((studentId) => !assignTaskStudentIds.includes(studentId));
+
+
+    const andConditions = []
+    if (searchTerm) {
+        andConditions.push({
+            OR: studentSearchableFields.map((field) => ({
+                [field]: {
+                    contains: searchTerm,
+                    mode: 'insensitive'
+                }
+            }))
+        })
+    }
+
+    if (Object.keys(filterData).length > 0) {
+        andConditions.push({
+            AND: [
+                ...Object.entries(filterData)
+                    .filter(([key]) => key !== 'interests')
+                    .map(([key, value]) => ({
+                        [key]: value
+                    })),
+                ...Object.entries(filterData)
+                    .filter(([key]) => key === 'interests')
+                    .map(([key, value]) => {
+                        if (!Array.isArray(value)) {
+                            value = [value];
+                        }
+                        return {
+                            [key]: {
+                                some: {
+                                    interest: {
+                                        title: {
+                                            in: value
+                                        }
+                                    }
+                                }
+                            }
+                        };
+                    })
+            ]
+        });
+    }
+
+    const whereConditions: Prisma.StudentWhereInput =
+        andConditions.length > 0 ? { AND: andConditions } : {}
+
+    const result = await prisma.student.findMany({
+        where: {
+            AND: [
+                { id: { in: studentEnrolledNotAssignTaskIds } },
+                whereConditions
+            ]
+        },
+        skip,
+        take: limit,
+        orderBy: options.sortBy && options.sortOrder
+            ? {
+                [options.sortBy]: options.sortOrder
+            } : {
+                firstName: 'asc'
+            }
+    });
+
+
+    const total = studentEnrolledNotAssignTaskIds.length;
+
+
+    return {
+        meta: {
+            total,
+            page,
+            limit
+        },
+        data: result
+    };
+
+}
+
+const unassignTask = async (
+    id: string,
+    taskId: string,
+    payload: string[]
+): Promise<Task | null> => {
+
+    const facultyInfo = await prisma.faculty.findFirst({
+        where: {
+            userId: id
+        }
+    })
+
+    if (!facultyInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Faculty does not exist")
+    }
+
+    const { id: fId } = facultyInfo
+
+    const taskFaculty = await prisma.taskFaculty.findUnique({
+        where: {
+            taskId_facultyId: {
+                taskId: taskId,
+                facultyId: fId
+            }
+        },
+        include: {
+            task: true
+        }
+    });
+
+    if (!taskFaculty) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Task not found for this faculty");
+    }
+    const existingEnrolledStudents = await prisma.facultyEnrollment.findMany({
+        where: {
+            facultyId: fId,
+            studentId: {
+                in: payload,
+            },
+        },
+    });
+
+
+    const enrolledStudentsIds = existingEnrolledStudents.map((student) => student.studentId);
+
+
+
+    const unenrolledStudentsIds = payload.filter((studentId) => !enrolledStudentsIds.includes(studentId));
+
+    if (unenrolledStudentsIds.length > 0) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Students not found for this faculty");
+    }
+
+    const unassignTaskStudents = await prisma.taskStudent.deleteMany({
+        where: {
+            studentId: {
+                in: payload,
+            },
+            taskId: taskId,
+        },
+    });
+
+    if (!unassignTaskStudents) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Unassign task failed");
+    }
+
+    const task = await prisma.task.findUnique({
+        where: {
+            id: taskId
+        },
+        include: {
+            hint: true,
+            students: true
+        }
+    });
+
+    if (!task) {
+        return null;
+    }
+
+    return task
+}
+
+const removeSingleSpecificFacultyTask = async (
+    id: string,
+    taskId: string
+): Promise<Task> => {
+
+    const facultyInfo = await prisma.faculty.findFirst({
+        where: {
+            userId: id
+        }
+    });
+
+    if (!facultyInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Faculty does not exist");
+    }
+
+    const { id: fId } = facultyInfo;
+
+    const taskFaculty = await prisma.taskFaculty.findUnique({
+        where: {
+            taskId_facultyId: {
+                taskId: taskId,
+                facultyId: fId
+            }
+        },
+        include: {
+            task: true
+        }
+    });
+
+    if (!taskFaculty) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Task not found for this faculty");
+    }
+
+    const taskDelete = await prisma.$transaction(async (transactionClient) => {
+
+        const taskAssignStudents = await prisma.taskStudent.findMany({
+            where: {
+                taskId
+            },
+            include: {
+                student: true
+            }
+        })
+
+        if (taskAssignStudents) {
+            const unassignTaskAllStudents = await transactionClient.taskStudent.deleteMany({
+                where: {
+                    taskId: taskId,
+                },
+            });
+
+            if (!unassignTaskAllStudents) {
+                throw new ApiError(httpStatus.NOT_FOUND, "Unassign task failed");
+            }
+        }
+
+
+        const taskHintsForTask = await transactionClient.taskHint.findMany({
+            where: {
+                taskId: taskId
+            }
+        });
+
+        if (taskHintsForTask) {
+            const removeHintsForTask = await transactionClient.taskHint.deleteMany({
+                where: {
+                    taskId: taskId
+                }
+            });
+
+            if (!removeHintsForTask) {
+                throw new ApiError(httpStatus.NOT_FOUND, "Remove task hint failed");
+            }
+        }
+
+        const deleteTaskFromFaculty = await transactionClient.taskFaculty.deleteMany({
+            where: {
+                taskId: taskId
+            }
+        });
+
+        if (!deleteTaskFromFaculty) {
+            throw new ApiError(httpStatus.NOT_FOUND, "Remove task failed");
+        }
+
+        const deleteTask = await transactionClient.task.delete({
+            where: {
+                id: taskId
+            }
+        });
+
+        if (!deleteTask) {
+            throw new ApiError(httpStatus.NOT_FOUND, "Delete task failed");
+        }
+        return deleteTask
+
+    })
+
+    return taskDelete
+};
+
+
+
 
 export const FacultyService = {
     assignInterestFaculty,
@@ -737,5 +1296,10 @@ export const FacultyService = {
     updateSingleSpecificFacultyTask,
     assignTaskHint,
     updateTaskHint,
-    removeTaskHint
+    removeTaskHint,
+    assignTask,
+    getAssignTaskStudent,
+    getUnassignTaskStudent,
+    unassignTask,
+    removeSingleSpecificFacultyTask
 }

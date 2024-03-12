@@ -121,6 +121,71 @@ const removeTaskHint = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const assignTask = catchAsync(async (req: Request, res: Response) => {
+    const { id, taskId } = req.params;
+    const result = await FacultyService.assignTask(id, taskId, req.body.student)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Task assign successful",
+        data: result
+    })
+})
+
+const getAssignTaskStudent = catchAsync(async (req: Request, res: Response) => {
+    const { id, taskId } = req.params;
+    const filters = pick(req.query, studentFilterableFields)
+    const options = pick(req.query, ['size', 'page', 'sortBy', 'sortOrder'])
+    const result = await FacultyService.getAssignTaskStudent(id, taskId, filters, options)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Assign task students Found Successfully",
+        meta: result.meta,
+        data: result.data
+    })
+})
+
+const getUnassignTaskStudent = catchAsync(async (req: Request, res: Response) => {
+    const { id, taskId } = req.params;
+    const filters = pick(req.query, studentFilterableFields)
+    const options = pick(req.query, ['size', 'page', 'sortBy', 'sortOrder'])
+    const result = await FacultyService.getUnassignTaskStudent(id, taskId, filters, options)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Assign task students Found Successfully",
+        meta: result.meta,
+        data: result.data
+    })
+})
+
+const unassignTask = catchAsync(async (req: Request, res: Response) => {
+    const { id, taskId } = req.params;
+    const result = await FacultyService.unassignTask(id, taskId, req.body.student)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Task unassign successful",
+        data: result
+    })
+})
+
+const removeSingleSpecificFacultyTask = catchAsync(async (req: Request, res: Response) => {
+    const { id, taskId } = req.params;
+    const result = await FacultyService.removeSingleSpecificFacultyTask(id, taskId);
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Task delete successfully',
+        data: result
+    });
+});
+
 export const FacultyController = {
     assignInterestFaculty,
     getSpecificFaculty,
@@ -130,5 +195,10 @@ export const FacultyController = {
     updateSingleSpecificFacultyTask,
     assignTaskHint,
     updateTaskHint,
-    removeTaskHint
+    removeTaskHint,
+    assignTask,
+    getAssignTaskStudent,
+    getUnassignTaskStudent,
+    unassignTask,
+    removeSingleSpecificFacultyTask
 }
