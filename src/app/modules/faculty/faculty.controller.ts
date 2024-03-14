@@ -3,10 +3,37 @@ import httpStatus from "http-status";
 import catchAsync from "../../../shared/catchAsync";
 import pick from "../../../shared/pick";
 import sendResponse from "../../../shared/sendResponse";
+import { interestFilterableFields } from "../interest/interest.constant";
 import { studentFilterableFields } from "../student/student.constant";
 import { taskFilterableFields } from "../task/task.constant";
 import { facultyFilterableFields } from "./faculty.constant";
 import { FacultyService } from "./faculty.service";
+
+const getFacultyByUserId = catchAsync(async (req: Request, res: Response) => {
+
+
+    const result = await FacultyService.getFacultyByUserId(req.params.id)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Faculty data fetched by user id",
+        data: result
+    })
+})
+
+const getFacultyByFacultyId = catchAsync(async (req: Request, res: Response) => {
+
+
+    const result = await FacultyService.getFacultyByFacultyId(req.params.id)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Faculty data fetched by user id",
+        data: result
+    })
+})
 
 const assignInterestFaculty = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
@@ -16,6 +43,34 @@ const assignInterestFaculty = catchAsync(async (req: Request, res: Response) => 
         statusCode: httpStatus.OK,
         success: true,
         message: "Assign interest data successfully",
+        data: result
+    })
+})
+
+const getAssignInterest = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const filters = pick(req.query, interestFilterableFields)
+    const options = pick(req.query, ['size', 'page', 'sortBy', 'sortOrder'])
+    const result = await FacultyService.getAssignInterest(id, filters, options)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Assign interest data retrieved successfully",
+        meta: result.meta,
+        data: result.data
+    })
+})
+
+const deleteInterest = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const result = await FacultyService.deleteInterest(id, req.body.interest)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Delete expertise data successfully",
         data: result
     })
 })
@@ -187,7 +242,11 @@ const removeSingleSpecificFacultyTask = catchAsync(async (req: Request, res: Res
 });
 
 export const FacultyController = {
+    getFacultyByUserId,
+    getFacultyByFacultyId,
     assignInterestFaculty,
+    getAssignInterest,
+    deleteInterest,
     getSpecificFaculty,
     getEnrolledStudents,
     getAllSpecificFacultyTask,

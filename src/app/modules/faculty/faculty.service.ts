@@ -1,16 +1,54 @@
-import { Faculty, InterestFaculty, Prisma, Student, Task } from "@prisma/client";
+import { Faculty, Interest, InterestFaculty, Prisma, Student, Task } from "@prisma/client";
 import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiError";
 import { paginationHelpers } from "../../../helpers/paginationHelper";
 import { IGenericResponse } from "../../../interfaces/common";
 import { IPaginationOptions } from "../../../interfaces/pagination";
 import prisma from "../../../shared/prisma";
+import { interestSearchableFields } from "../interest/interest.constant";
+import { IInterestFilterRequest } from "../interest/interest.interface";
 import { studentSearchableFields } from "../student/student.constant";
 import { IStudentFilterRequest } from "../student/student.interface";
 import { taskSearchableFields } from "../task/task.constant";
 import { ITakFilterRequest } from "../task/task.interface";
 import { facultySearchableFields } from "./faculty.constant";
 import { IFacultyFilterRequest, TaskHintPayload } from "./faculty.interface";
+
+const getFacultyByUserId = async (id: string): Promise<Faculty | null> => {
+    const facultyInfo = await prisma.faculty.findFirst({
+        where: {
+            userId: id
+        },
+        include: {
+            user: true
+        }
+    })
+
+    if (!facultyInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Faculty does not exist")
+    }
+
+
+    return facultyInfo;
+}
+
+const getFacultyByFacultyId = async (id: string): Promise<Faculty | null> => {
+    const facultyInfo = await prisma.faculty.findFirst({
+        where: {
+            id
+        },
+        include: {
+            user: true
+        }
+    })
+
+    if (!facultyInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Faculty does not exist")
+    }
+
+
+    return facultyInfo;
+}
 
 const assignInterestFaculty = async (
     id: string,
@@ -58,6 +96,162 @@ const assignInterestFaculty = async (
     return assignInterestData
 }
 
+const getAssignInterest = async (
+    id: string,
+    filters: IInterestFilterRequest,
+    options: IPaginationOptions
+): Promise<IGenericResponse<Interest[]>> => {
+
+    const { page, limit, skip } = paginationHelpers.calculatePagination(options);
+    const { searchTerm, ...filterData } = filters
+
+
+
+    const facultyInfo = await prisma.faculty.findFirst({
+        where: {
+            userId: id
+        }
+    })
+
+    if (!facultyInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Faculty does not exist")
+    }
+
+
+    const { id: fId } = facultyInfo
+    const existingInterests = await prisma.interestFaculty.findMany({
+        where: {
+            facultyId: fId
+        },
+        include: {
+            interest: true
+        }
+    })
+
+
+
+
+    if (existingInterests.length === 0) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Faculty did not select any interest");
+    }
+
+    const andConditions = []
+    if (searchTerm) {
+        andConditions.push({
+            OR: interestSearchableFields.map((field) => ({
+                [field]: {
+                    contains: searchTerm,
+                    mode: 'insensitive'
+                }
+            }))
+        })
+    }
+
+    if (Object.keys(filterData).length > 0) {
+        andConditions.push({
+            AND: Object.keys(filterData).map((key) => ({
+                [key]: {
+                    equals: (filterData as any)[key]
+                }
+            }))
+        })
+    }
+
+    const whereConditions: Prisma.InterestWhereInput =
+        andConditions.length > 0 ? { AND: andConditions } : {}
+
+
+
+    const interestIds: string[] = [];
+
+    existingInterests.forEach(item => {
+        interestIds.push(item.interestId);
+    });
+
+    const result = await prisma.interest.findMany({
+        where: {
+            AND: [
+                { id: { in: interestIds } },
+                whereConditions
+            ]
+        },
+        skip,
+        take: limit,
+        orderBy: options.sortBy && options.sortOrder
+            ? {
+                [options.sortBy]: options.sortOrder
+            } : {
+                title: 'asc'
+            }
+    });
+
+    const total = await prisma.interestFaculty.count({
+        where: {
+            facultyId: fId,
+        },
+    });
+
+
+    return {
+        meta: {
+            total,
+            page,
+            limit
+        },
+        data: result
+    };
+}
+
+const deleteInterest = async (
+    id: string,
+    payload: string[]
+): Promise<InterestFaculty[] | ''> => {
+    const facultyInfo = await prisma.faculty.findFirst({
+        where: {
+            userId: id
+        }
+    })
+
+    if (!facultyInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Faculty does not exist")
+    }
+
+    const { id: fId } = facultyInfo
+    const existingInterests = await prisma.interestFaculty.findMany({
+        where: {
+            facultyId: fId,
+            interestId: {
+                in: payload,
+            },
+        },
+    });
+
+    if (existingInterests) {
+        await prisma.interestFaculty.deleteMany({
+            where: {
+                facultyId: fId,
+                interestId: {
+                    in: payload,
+                },
+
+            }
+        });
+        const assignInterestData = await prisma.interestFaculty.findMany({
+            where: {
+                facultyId: fId
+            },
+            include: {
+                interest: true
+            }
+        })
+        return assignInterestData
+    }
+
+    return ""
+
+
+}
+
 const getSpecificFaculties = async (
     filters: IFacultyFilterRequest,
     options: IPaginationOptions,
@@ -68,33 +262,34 @@ const getSpecificFaculties = async (
     const { searchTerm, ...filterData } = filters
 
     const andConditions = []
+    console.log(Object.keys(filterData).length > 0)
+    console.log(filterData)
+    const studentInfo = await prisma.student.findFirst({
+        where: {
+            userId: id
+        }
+    })
+
+    if (!studentInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Student does not exist")
+    }
+
+
+    const { id: sId } = studentInfo
+    const existingInterests = await prisma.interestStudent.findMany({
+        where: {
+            studentId: sId
+        },
+        include: {
+            interest: true
+        }
+    })
+
+    if (existingInterests.length === 0) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Student did not select any interest");
+    }
 
     if (searchTerm || Object.keys(filterData).length > 0) {
-        const studentInfo = await prisma.student.findFirst({
-            where: {
-                userId: id
-            }
-        })
-
-        if (!studentInfo) {
-            throw new ApiError(httpStatus.NOT_FOUND, "Student does not exist")
-        }
-
-
-        const { id: sId } = studentInfo
-        const existingInterests = await prisma.interestStudent.findMany({
-            where: {
-                studentId: sId
-            },
-            include: {
-                interest: true
-            }
-        })
-
-        if (existingInterests.length === 0) {
-            throw new ApiError(httpStatus.NOT_FOUND, "Student did not select any interest");
-        }
-
 
         if (searchTerm) {
             andConditions.push({
@@ -139,30 +334,6 @@ const getSpecificFaculties = async (
     }
 
     else {
-        const studentInfo = await prisma.student.findFirst({
-            where: {
-                userId: id
-            }
-        })
-
-        if (!studentInfo) {
-            throw new ApiError(httpStatus.NOT_FOUND, "Student does not exist")
-        }
-
-
-        const { id: sId } = studentInfo
-        const existingInterests = await prisma.interestStudent.findMany({
-            where: {
-                studentId: sId
-            },
-            include: {
-                interest: true
-            }
-        })
-
-        if (existingInterests.length === 0) {
-            throw new ApiError(httpStatus.NOT_FOUND, "Student did not select any interest");
-        }
 
         const interest = existingInterests.map(item => item.interest.title);
 
@@ -184,7 +355,13 @@ const getSpecificFaculties = async (
     }
 
 
+    const existingEnrolledFaculties = await prisma.facultyEnrollment.findMany({
+        where: {
+            studentId: sId
+        }
+    });
 
+    const existingEnrolledFacultyIds = existingEnrolledFaculties.map((faculty) => faculty.facultyId);
 
     const whereConditions: Prisma.FacultyWhereInput =
         andConditions.length > 0 ? { AND: andConditions } : {};
@@ -200,9 +377,29 @@ const getSpecificFaculties = async (
         }
     });
 
+    const searchFacultyIds = result.map((faculty) => faculty.id)
+
+    const filterFacultyIds = searchFacultyIds.filter((facultyId) => !existingEnrolledFacultyIds.includes(facultyId))
+
+    const result1 = await prisma.faculty.findMany({
+        where: {
+            AND: [
+                { id: { in: filterFacultyIds } },
+                whereConditions
+            ]
+        },
+        skip,
+        take: limit,
+        orderBy: options.sortBy && options.sortOrder ? {
+            [options.sortBy]: options.sortOrder
+        } : {
+            firstName: 'asc'
+        }
+    });
 
 
-    const total = await prisma.faculty.count({ where: whereConditions });
+
+    const total = filterFacultyIds.length;
 
     return {
         meta: {
@@ -210,7 +407,7 @@ const getSpecificFaculties = async (
             page,
             limit
         },
-        data: result
+        data: result1
     }
 }
 
@@ -1288,7 +1485,11 @@ const removeSingleSpecificFacultyTask = async (
 
 
 export const FacultyService = {
+    getFacultyByUserId,
+    getFacultyByFacultyId,
     assignInterestFaculty,
+    getAssignInterest,
+    deleteInterest,
     getSpecificFaculties,
     getEnrolledStudents,
     getAllSpecificFacultyTask,
