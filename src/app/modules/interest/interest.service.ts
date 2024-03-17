@@ -69,6 +69,8 @@ const getAllInterest = async (
     }
 }
 
+
+
 export const InterestService = {
     createInterest,
     getAllInterest
