@@ -7,6 +7,10 @@ const router = express.Router();
 router.get('/:id',
     StudentController.getStudentByUserId)
 
+router.get('/:id/student-id',
+    StudentController.getStudentByStudentId)
+
+
 router.get('/getInterest/:id',
     StudentController.getAssignInterest)
 

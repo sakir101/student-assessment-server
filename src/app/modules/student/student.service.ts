@@ -26,6 +26,25 @@ const getStudentByUserId = async (id: string): Promise<Student | null> => {
     return studentInfo;
 }
 
+const getStudentByStudentId = async (id: string): Promise<Student | null> => {
+    const studentInfo = await prisma.student.findFirst({
+        where: {
+            id
+        },
+        include: {
+            user: true
+        }
+    })
+
+    if (!studentInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Student does not exist")
+    }
+
+
+    return studentInfo;
+}
+
+
 const assignInterest = async (
     id: string,
     payload: string[]
@@ -456,6 +475,7 @@ const getEnrolledFaculties = async (
 
 export const StudentService = {
     getStudentByUserId,
+    getStudentByStudentId,
     assignInterest,
     deleteInterest,
     getAssignInterest,

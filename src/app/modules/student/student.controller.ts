@@ -20,6 +20,19 @@ const getStudentByUserId = catchAsync(async (req: Request, res: Response) => {
     })
 })
 
+const getStudentByStudentId = catchAsync(async (req: Request, res: Response) => {
+
+
+    const result = await StudentService.getStudentByStudentId(req.params.id)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Student data fetched by student id",
+        data: result
+    })
+})
+
 const assignInterest = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
     const result = await StudentService.assignInterest(id, req.body.interest)
@@ -102,6 +115,7 @@ const getEnrolledFaculties = catchAsync(async (req: Request, res: Response) => {
 
 export const StudentController = {
     getStudentByUserId,
+    getStudentByStudentId,
     assignInterest,
     deleteInterest,
     getAssignInterest,
