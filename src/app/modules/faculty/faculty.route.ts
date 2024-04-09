@@ -5,6 +5,7 @@ import { FacultyController } from './faculty.controller';
 
 const router = express.Router();
 
+
 router.get('/:id',
     FacultyController.getFacultyByUserId)
 
@@ -31,6 +32,9 @@ router.get('/getAssignTaskStudents/:id/:taskId',
 
 router.get('/getUnassignTaskStudents/:id/:taskId',
     FacultyController.getUnassignTaskStudent)
+
+router.get('/task/hint/:id',
+    FacultyController.getSingleTaskHint)
 
 router.patch('/:id/:taskId',
     validateRequest(TaskValidation.update),

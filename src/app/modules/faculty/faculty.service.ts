@@ -1,4 +1,4 @@
-import { Faculty, Interest, InterestFaculty, Prisma, Student, Task } from "@prisma/client";
+import { Faculty, Interest, InterestFaculty, Prisma, Student, Task, TaskHint } from "@prisma/client";
 import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiError";
 import { paginationHelpers } from "../../../helpers/paginationHelper";
@@ -799,7 +799,7 @@ const assignTaskHint = async (
         throw new ApiError(httpStatus.NOT_FOUND, "Task not found for this faculty");
     }
 
-
+    console.log(payload)
     const createTaskHint = await prisma.taskHint.create({
         data: {
             description: payload.description,
@@ -829,6 +829,23 @@ const assignTaskHint = async (
     }
 
     return taskWithHint
+
+}
+
+const getSingleTaskHint = async (
+    id: string
+): Promise<TaskHint> => {
+
+    const taskHint = await prisma.taskHint.findUnique({
+        where: {
+            id
+        }
+    });
+
+    if (!taskHint) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Task hint not found");
+    }
+    return taskHint
 
 }
 
@@ -1496,6 +1513,7 @@ export const FacultyService = {
     getSingleSpecificFacultyTask,
     updateSingleSpecificFacultyTask,
     assignTaskHint,
+    getSingleTaskHint,
     updateTaskHint,
     removeTaskHint,
     assignTask,

@@ -154,6 +154,19 @@ const assignTaskHint = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const getSingleTaskHint = catchAsync(async (req: Request, res: Response) => {
+
+
+    const result = await FacultyService.getSingleTaskHint(req.params.id)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Task hint get successfully by id",
+        data: result
+    })
+})
+
 const updateTaskHint = catchAsync(async (req: Request, res: Response) => {
     const { taskId, hintId } = req.params;
     const result = await FacultyService.updateTaskHint(taskId, hintId, req.body);
@@ -253,6 +266,7 @@ export const FacultyController = {
     getSingleSpecificFacultyTask,
     updateSingleSpecificFacultyTask,
     assignTaskHint,
+    getSingleTaskHint,
     updateTaskHint,
     removeTaskHint,
     assignTask,
