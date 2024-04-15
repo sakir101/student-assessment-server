@@ -17,6 +17,18 @@ router.get('/getInterest/:id',
 router.get('/getEnrolledFaculties/:id',
     StudentController.getEnrolledFaculties)
 
+router.get('/getAllSpecificIncompleteTask/incomplete/:id',
+    StudentController.getAllSpecificIncompleteStudentTask)
+
+router.get('/:id/:taskId',
+    StudentController.getSingleSpecificStudentTask)
+
+router.get('/getAllSpecificCompleteTask/complete/:id',
+    StudentController.getAllSpecificCompleteStudentTask)
+
+router.patch('/:id/:taskId',
+    StudentController.taskSolutionAddedByStudent)
+
 router.post('/:id/assign-interests',
     StudentController.assignInterest)
 

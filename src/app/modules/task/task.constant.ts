@@ -1,7 +1,8 @@
 export const taskFilterableFields: string[] = [
     'searchTerm',
     'createdAt',
-    'updatedAt'
+    'updatedAt',
+    'facultyId'
 ];
 
 export const taskSearchableFields: string[] = [

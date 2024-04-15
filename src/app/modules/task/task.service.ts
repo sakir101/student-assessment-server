@@ -9,38 +9,48 @@ const createTask = async (id: string, taskData: Task) => {
             where: {
                 userId: id
             }
-        })
+        });
 
         if (!facultyInfo) {
-            throw new ApiError(httpStatus.NOT_FOUND, "Faculty does not exist")
+            throw new ApiError(httpStatus.NOT_FOUND, "Faculty does not exist");
         }
-
-        const result = await transactionClient.task.create({
-            data: taskData
-        });
 
         const { id: fId } = facultyInfo;
 
-        await transactionClient.taskFaculty.createMany({
-            data: [{
-                taskId: result.id,
-                facultyId: fId
-            }]
+
+        const { facultyId, ...taskWithoutFacultyId } = taskData;
+
+        const result = await transactionClient.task.create({
+            data: {
+                ...taskWithoutFacultyId,
+                faculty: { connect: { id: fId } }
+            }
         });
 
-        const createdTask = await transactionClient.taskFaculty.findMany({
-            where: {
+        await transactionClient.taskFaculty.create({
+            data: {
+                taskId: result.id,
                 facultyId: fId
+            }
+        });
+
+        const createdTask = await transactionClient.task.findMany({
+            where: {
+                id: result.id
             },
             include: {
-                task: true
+                faculty: true,
+                hint: true,
+                students: true
             }
-        })
-        return createdTask
+        });
+
+        return createdTask;
     });
 
-    return newTask
+    return newTask;
 };
+
 
 
 

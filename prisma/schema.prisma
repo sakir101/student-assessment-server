@@ -63,6 +63,7 @@ model Faculty {
   InterestFaculty InterestFaculty[]
   students        FacultyEnrollment[]
   taskFaculty     TaskFaculty[]
+  Task            Task[]
 
   @@map("faculties")
 }
@@ -150,6 +151,8 @@ model Task {
   hint        TaskHint[]
   students    TaskStudent[]
   faculties   TaskFaculty[]
+  faculty     Faculty       @relation(fields: [facultyId], references: [id])
+  facultyId   String
 }
 
 model TaskHint {

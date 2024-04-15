@@ -1,6 +1,7 @@
 export const gender = ['male', 'female'];
 export const institution = [
-    'Daffodil International University'
+    'Daffodil International University',
+    'Brac University'
 ];
 
 export const studentFilterableFields: string[] = [

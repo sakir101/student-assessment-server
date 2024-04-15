@@ -5,6 +5,7 @@ import pick from "../../../shared/pick";
 import sendResponse from "../../../shared/sendResponse";
 import { facultyFilterableFields } from "../faculty/faculty.constant";
 import { interestFilterableFields } from "../interest/interest.constant";
+import { taskFilterableFields } from "../task/task.constant";
 import { StudentService } from "./student.service";
 
 const getStudentByUserId = catchAsync(async (req: Request, res: Response) => {
@@ -113,6 +114,59 @@ const getEnrolledFaculties = catchAsync(async (req: Request, res: Response) => {
     })
 })
 
+const getAllSpecificIncompleteStudentTask = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const filters = pick(req.query, taskFilterableFields)
+    const options = pick(req.query, ['size', 'page', 'sortBy', 'sortOrder'])
+    const result = await StudentService.getAllSpecificIncompleteStudentTask(id, filters, options)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Task data retrieved successfully",
+        meta: result.meta,
+        data: result.data
+    })
+})
+
+const getSingleSpecificStudentTask = catchAsync(async (req: Request, res: Response) => {
+    const { id, taskId } = req.params;
+    const result = await StudentService.getSingleSpecificStudentTask(id, taskId)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Single task data retrieved successfully",
+        data: result
+    })
+})
+
+const taskSolutionAddedByStudent = catchAsync(async (req: Request, res: Response) => {
+    const { id, taskId } = req.params;
+    const result = await StudentService.taskSolutionAddedByStudent(id, taskId, req.body);
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Task solution added successfully',
+        data: result
+    });
+});
+
+const getAllSpecificCompleteStudentTask = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const filters = pick(req.query, taskFilterableFields)
+    const options = pick(req.query, ['size', 'page', 'sortBy', 'sortOrder'])
+    const result = await StudentService.getAllSpecificCompleteStudentTask(id, filters, options)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Task data retrieved successfully",
+        meta: result.meta,
+        data: result.data
+    })
+})
+
 export const StudentController = {
     getStudentByUserId,
     getStudentByStudentId,
@@ -121,5 +175,9 @@ export const StudentController = {
     getAssignInterest,
     enrollFaculties,
     unenrollFaculty,
-    getEnrolledFaculties
+    getEnrolledFaculties,
+    getAllSpecificIncompleteStudentTask,
+    getSingleSpecificStudentTask,
+    taskSolutionAddedByStudent,
+    getAllSpecificCompleteStudentTask
 }
