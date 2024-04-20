@@ -305,8 +305,7 @@ const getSpecificFaculties = async (
     const { searchTerm, ...filterData } = filters
 
     const andConditions = []
-    console.log(Object.keys(filterData).length > 0)
-    console.log(filterData)
+
     const studentInfo = await prisma.student.findFirst({
         where: {
             userId: id
@@ -424,25 +423,68 @@ const getSpecificFaculties = async (
 
     const filterFacultyIds = searchFacultyIds.filter((facultyId) => !existingEnrolledFacultyIds.includes(facultyId))
 
-    const result1 = await prisma.faculty.findMany({
-        where: {
-            AND: [
-                { id: { in: filterFacultyIds } },
-                whereConditions
-            ]
-        },
-        skip,
-        take: limit,
-        orderBy: options.sortBy && options.sortOrder ? {
-            [options.sortBy]: options.sortOrder
-        } : {
-            firstName: 'asc'
-        }
-    });
+    let result1 = []
+    let result2 = []
+    let total = null
+
+    if (searchTerm || Object.keys(filterData).length > 0) {
+
+        result2 = await prisma.faculty.findMany({
+            where: {
+                AND: [
+                    { id: { in: filterFacultyIds } },
+                    whereConditions
+                ]
+            },
+            orderBy: options.sortBy && options.sortOrder ? {
+                [options.sortBy]: options.sortOrder
+            } : {
+                firstName: 'asc'
+            }
+        });
+
+        result1 = await prisma.faculty.findMany({
+            where: {
+                AND: [
+                    { id: { in: filterFacultyIds } },
+                    whereConditions
+                ]
+            },
+            skip,
+            take: limit,
+            orderBy: options.sortBy && options.sortOrder ? {
+                [options.sortBy]: options.sortOrder
+            } : {
+                firstName: 'asc'
+            }
+        });
+
+        total = result2.length
+
+        console.log(total)
+    }
+
+    else {
+        result1 = await prisma.faculty.findMany({
+            where: {
+                AND: [
+                    { id: { in: filterFacultyIds } },
+                    whereConditions
+                ]
+            },
+            skip,
+            take: limit,
+            orderBy: options.sortBy && options.sortOrder ? {
+                [options.sortBy]: options.sortOrder
+            } : {
+                firstName: 'asc'
+            }
+        });
 
 
+        total = filterFacultyIds.length;
+    }
 
-    const total = filterFacultyIds.length;
 
     return {
         meta: {

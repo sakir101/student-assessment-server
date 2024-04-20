@@ -215,29 +215,71 @@ const getAssignInterest = async (
         interestIds.push(item.interestId);
     });
 
-    const result = await prisma.interest.findMany({
-        where: {
-            AND: [
-                { id: { in: interestIds } },
-                whereConditions
-            ]
-        },
-        skip,
-        take: limit,
-        orderBy: options.sortBy && options.sortOrder
-            ? {
-                [options.sortBy]: options.sortOrder
-            } : {
-                title: 'asc'
-            }
-    });
+    let result = []
+    let result1 = []
+    let total = null
 
-    const total = await prisma.interestStudent.count({
-        where: {
-            studentId: sId,
-        },
-    });
+    if (searchTerm) {
 
+        result1 = await prisma.interest.findMany({
+            where: {
+                AND: [
+                    { id: { in: interestIds } },
+                    whereConditions
+                ]
+            },
+            orderBy: options.sortBy && options.sortOrder
+                ? {
+                    [options.sortBy]: options.sortOrder
+                } : {
+                    title: 'asc'
+                }
+        });
+
+        result = await prisma.interest.findMany({
+            where: {
+                AND: [
+                    { id: { in: interestIds } },
+                    whereConditions
+                ]
+            },
+            skip,
+            take: limit,
+            orderBy: options.sortBy && options.sortOrder
+                ? {
+                    [options.sortBy]: options.sortOrder
+                } : {
+                    title: 'asc'
+                }
+        });
+
+        total = result1.length
+    }
+
+    else {
+        result = await prisma.interest.findMany({
+            where: {
+                AND: [
+                    { id: { in: interestIds } },
+                    whereConditions
+                ]
+            },
+            skip,
+            take: limit,
+            orderBy: options.sortBy && options.sortOrder
+                ? {
+                    [options.sortBy]: options.sortOrder
+                } : {
+                    title: 'asc'
+                }
+        });
+
+        total = await prisma.interestStudent.count({
+            where: {
+                studentId: sId,
+            },
+        });
+    }
 
     return {
         meta: {
@@ -440,28 +482,72 @@ const getEnrolledFaculties = async (
         enrolledFacultyIds.push(item.facultyId);
     });
 
-    const result = await prisma.faculty.findMany({
-        where: {
-            AND: [
-                { id: { in: enrolledFacultyIds } },
-                whereConditions
-            ]
-        },
-        skip,
-        take: limit,
-        orderBy: options.sortBy && options.sortOrder
-            ? {
-                [options.sortBy]: options.sortOrder
-            } : {
-                firstName: 'asc'
-            }
-    });
+    let result = []
+    let result1 = []
+    let total = null
 
-    const total = await prisma.facultyEnrollment.count({
-        where: {
-            studentId: sId,
-        },
-    });
+    if (searchTerm || Object.keys(filterData).length > 0) {
+        result1 = await prisma.faculty.findMany({
+            where: {
+                AND: [
+                    { id: { in: enrolledFacultyIds } },
+                    whereConditions
+                ]
+            },
+            orderBy: options.sortBy && options.sortOrder
+                ? {
+                    [options.sortBy]: options.sortOrder
+                } : {
+                    firstName: 'asc'
+                }
+        });
+
+        result = await prisma.faculty.findMany({
+            where: {
+                AND: [
+                    { id: { in: enrolledFacultyIds } },
+                    whereConditions
+                ]
+            },
+            skip,
+            take: limit,
+            orderBy: options.sortBy && options.sortOrder
+                ? {
+                    [options.sortBy]: options.sortOrder
+                } : {
+                    firstName: 'asc'
+                }
+        });
+
+        total = result1.length
+    }
+
+    else {
+        result = await prisma.faculty.findMany({
+            where: {
+                AND: [
+                    { id: { in: enrolledFacultyIds } },
+                    whereConditions
+                ]
+            },
+            skip,
+            take: limit,
+            orderBy: options.sortBy && options.sortOrder
+                ? {
+                    [options.sortBy]: options.sortOrder
+                } : {
+                    firstName: 'asc'
+                }
+        });
+
+        total = await prisma.facultyEnrollment.count({
+            where: {
+                studentId: sId,
+            },
+        });
+    }
+
+
 
 
     return {
