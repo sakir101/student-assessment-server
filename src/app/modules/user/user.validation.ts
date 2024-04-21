@@ -44,6 +44,7 @@ const studentFileUploadZodSchema = z.object({
         firstName: z.string({
             required_error: "First name is required"
         }),
+        middleName: z.string().optional(),
         lastName: z.string({
             required_error: "Last name is required"
         }),
@@ -71,6 +72,7 @@ const facultyFileUploadZodSchema = z.object({
         firstName: z.string({
             required_error: "First name is required"
         }),
+        middleName: z.string().optional(),
         lastName: z.string({
             required_error: "Last name is required"
         }),

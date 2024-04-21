@@ -461,7 +461,6 @@ const getSpecificFaculties = async (
 
         total = result2.length
 
-        console.log(total)
     }
 
     else {

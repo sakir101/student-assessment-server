@@ -651,7 +651,9 @@ const getAllSpecificIncompleteStudentTask = async (
     }
 
 
-    let result = null
+    let result = []
+    let result1 = []
+    let total = null
 
 
 
@@ -659,6 +661,22 @@ const getAllSpecificIncompleteStudentTask = async (
         andConditions.length > 0 ? { AND: andConditions } : {};
 
     if (commonTaskIds.length !== 0) {
+        result1 = await prisma.task.findMany({
+            where: {
+                AND: [
+                    { id: { in: commonTaskIds } },
+                    whereConditions
+                ]
+            },
+            include: {
+                faculty: true,
+                hint: true
+            },
+            orderBy: options.sortBy && options.sortOrder
+                ? { [options.sortBy]: options.sortOrder }
+                : { title: 'asc' }
+        });
+
         result = await prisma.task.findMany({
             where: {
                 AND: [
@@ -676,34 +694,80 @@ const getAllSpecificIncompleteStudentTask = async (
                 ? { [options.sortBy]: options.sortOrder }
                 : { title: 'asc' }
         });
+
+        total = result1.length
     }
 
     else {
-        result = await prisma.task.findMany({
-            where: {
-                AND: [
-                    { id: { in: studentIncompleteTaskIds } },
-                    whereConditions
-                ]
-            },
-            include: {
-                faculty: true,
-                hint: true
-            },
-            skip,
-            take: limit,
-            orderBy: options.sortBy && options.sortOrder
-                ? { [options.sortBy]: options.sortOrder }
-                : { title: 'asc' }
-        });
+
+        if (searchTerm) {
+            result1 = await prisma.task.findMany({
+                where: {
+                    AND: [
+                        { id: { in: studentIncompleteTaskIds } },
+                        whereConditions
+                    ]
+                },
+                include: {
+                    faculty: true,
+                    hint: true
+                },
+                orderBy: options.sortBy && options.sortOrder
+                    ? { [options.sortBy]: options.sortOrder }
+                    : { title: 'asc' }
+            });
+
+            result = await prisma.task.findMany({
+                where: {
+                    AND: [
+                        { id: { in: studentIncompleteTaskIds } },
+                        whereConditions
+                    ]
+                },
+                include: {
+                    faculty: true,
+                    hint: true
+                },
+                skip,
+                take: limit,
+                orderBy: options.sortBy && options.sortOrder
+                    ? { [options.sortBy]: options.sortOrder }
+                    : { title: 'asc' }
+            });
+
+            total = result1.length
+        } else {
+            result = await prisma.task.findMany({
+                where: {
+                    AND: [
+                        { id: { in: studentIncompleteTaskIds } },
+                        whereConditions
+                    ]
+                },
+                include: {
+                    faculty: true,
+                    hint: true
+                },
+                skip,
+                take: limit,
+                orderBy: options.sortBy && options.sortOrder
+                    ? { [options.sortBy]: options.sortOrder }
+                    : { title: 'asc' }
+            });
+
+            total = await prisma.taskStudent.count({
+                where: {
+                    studentId: sId,
+                },
+            });
+        }
+
+
+
     }
 
 
-    const total = await prisma.taskStudent.count({
-        where: {
-            studentId: sId,
-        },
-    });
+
 
 
     return {

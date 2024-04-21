@@ -18,7 +18,8 @@ const createStudent = async (req: Request) => {
 
     const { student: studentData, ...userData } = req.body
 
-
+    console.log(userData)
+    console.log(studentData)
 
     if (userData && studentData) {
         if (file === undefined) {
