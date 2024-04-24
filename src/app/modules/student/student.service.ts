@@ -1,4 +1,4 @@
-import { Faculty, FacultyEnrollment, Interest, InterestStudent, Prisma, SkillStudent, Student, TaskStudent } from "@prisma/client";
+import { Faculty, FacultyEnrollment, Interest, InterestStudent, Prisma, RelatedWorksStudent, SkillStudent, Student, TaskStudent } from "@prisma/client";
 import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiError";
 import { paginationHelpers } from "../../../helpers/paginationHelper";
@@ -368,8 +368,6 @@ const updateSkillStatus = async (
         throw new ApiError(httpStatus.NOT_FOUND, "Skill not found for this student");
     }
 
-    console.log(existingSkill)
-
     const updatedSkill = await prisma.skillStudent.update({
         where: {
             interestId_studentId: {
@@ -390,7 +388,497 @@ const updateSkillStatus = async (
     return updatedSkill;
 };
 
+const deleteSkill = async (
+    id: string,
+    payload: string[]
+): Promise<SkillStudent[] | ''> => {
+    const studentInfo = await prisma.student.findFirst({
+        where: {
+            userId: id
+        }
+    })
 
+    if (!studentInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Student does not exist")
+    }
+
+    const { id: sId } = studentInfo
+    const existingSkill = await prisma.skillStudent.findMany({
+        where: {
+            studentId: sId,
+            interestId: {
+                in: payload,
+            },
+        },
+    });
+
+    if (existingSkill) {
+        await prisma.skillStudent.deleteMany({
+            where: {
+                studentId: sId,
+                interestId: {
+                    in: payload,
+                },
+
+            }
+        });
+        const assignSkillData = await prisma.skillStudent.findMany({
+            where: {
+                studentId: sId
+            },
+            include: {
+                interest: true
+            }
+        })
+        return assignSkillData
+    }
+
+    return ""
+
+
+}
+
+const getAssignSkill = async (
+    id: string,
+    filters: IInterestFilterRequest,
+    options: IPaginationOptions
+): Promise<IGenericResponse<Interest[]>> => {
+
+    const { page, limit, skip } = paginationHelpers.calculatePagination(options);
+    const { searchTerm, ...filterData } = filters
+
+
+
+    const studentInfo = await prisma.student.findFirst({
+        where: {
+            userId: id
+        }
+    })
+
+    if (!studentInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Student does not exist")
+    }
+
+
+    const { id: sId } = studentInfo
+    const existingSkills = await prisma.skillStudent.findMany({
+        where: {
+            studentId: sId
+        },
+        include: {
+            interest: true
+        }
+    })
+
+
+
+
+    if (existingSkills.length === 0) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Student did not select any skill");
+    }
+
+    const andConditions = []
+    if (searchTerm) {
+        andConditions.push({
+            OR: interestSearchableFields.map((field) => ({
+                [field]: {
+                    contains: searchTerm,
+                    mode: 'insensitive'
+                }
+            }))
+        })
+    }
+
+    if (Object.keys(filterData).length > 0) {
+        andConditions.push({
+            AND: Object.keys(filterData).map((key) => ({
+                [key]: {
+                    equals: (filterData as any)[key]
+                }
+            }))
+        })
+    }
+
+    const whereConditions: Prisma.InterestWhereInput =
+        andConditions.length > 0 ? { AND: andConditions } : {}
+
+
+
+    const interestIds: string[] = [];
+
+    existingSkills.forEach(item => {
+        interestIds.push(item.interestId);
+    });
+
+    let result = []
+    let result1 = []
+    let total = null
+
+    if (searchTerm) {
+
+        result1 = await prisma.interest.findMany({
+            where: {
+                AND: [
+                    { id: { in: interestIds } },
+                    whereConditions
+                ]
+            },
+            orderBy: options.sortBy && options.sortOrder
+                ? {
+                    [options.sortBy]: options.sortOrder
+                } : {
+                    title: 'asc'
+                }
+        });
+
+        result = await prisma.interest.findMany({
+            where: {
+                AND: [
+                    { id: { in: interestIds } },
+                    whereConditions
+                ]
+            },
+            skip,
+            take: limit,
+            include: {
+                SkillStudent: true
+            },
+            orderBy: options.sortBy && options.sortOrder
+                ? {
+                    [options.sortBy]: options.sortOrder
+                } : {
+                    title: 'asc'
+                }
+        });
+
+        total = result1.length
+    }
+
+    else {
+        result = await prisma.interest.findMany({
+            where: {
+                AND: [
+                    { id: { in: interestIds } },
+                    whereConditions
+                ]
+            },
+            skip,
+            take: limit,
+            include: {
+                SkillStudent: true
+            },
+            orderBy: options.sortBy && options.sortOrder
+                ? {
+                    [options.sortBy]: options.sortOrder
+                } : {
+                    title: 'asc'
+                }
+        });
+
+        total = await prisma.skillStudent.count({
+            where: {
+                studentId: sId,
+            },
+        });
+    }
+
+    return {
+        meta: {
+            total,
+            page,
+            limit
+        },
+        data: result
+    };
+}
+
+const assignRelatedWork = async (
+    id: string,
+    interestId: string,
+    payload: Partial<RelatedWorksStudent>
+): Promise<RelatedWorksStudent> => {
+
+    const studentInfo = await prisma.student.findFirst({
+        where: {
+            userId: id
+        }
+    });
+
+    if (!studentInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Student does not exist");
+    }
+
+    const { id: sId } = studentInfo;
+
+    const existingRelatedWork = await prisma.relatedWorksStudent.findFirst({
+        where: {
+            studentId: sId,
+            interestId: interestId
+        }
+    });
+
+    if (existingRelatedWork) {
+        throw new ApiError(httpStatus.BAD_REQUEST, "Related work already exists for this student");
+    }
+
+    const createdRelatedWork = await prisma.relatedWorksStudent.create({
+        data: {
+            interestId: interestId,
+            studentId: sId,
+            description: payload.description as string
+        }
+    });
+
+    return createdRelatedWork;
+};
+
+const updateRelatedWorks = async (
+    id: string,
+    interestId: string,
+    payload: Partial<RelatedWorksStudent>
+) => {
+
+    const studentInfo = await prisma.student.findFirst({
+        where: {
+            userId: id
+        }
+    });
+
+    if (!studentInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Student does not exist");
+    }
+
+    const { id: sId } = studentInfo;
+
+    const existingRelatedWorks = await prisma.relatedWorksStudent.findFirst({
+        where: {
+            studentId: sId,
+            interestId: interestId
+        }
+    });
+
+    if (!existingRelatedWorks) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Related works not found for this student");
+    }
+
+    const updatedRelatedWorks = await prisma.relatedWorksStudent.update({
+        where: {
+            interestId_studentId: {
+                studentId: sId,
+                interestId: existingRelatedWorks.interestId
+            }
+        },
+        data: {
+            description: payload.description
+        }
+    });
+
+
+    if (!updatedRelatedWorks) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Related works update failed");
+    }
+
+    return updatedRelatedWorks;
+};
+
+const deleteRelatedWorks = async (
+    id: string,
+    interestId: string
+): Promise<RelatedWorksStudent[] | ''> => {
+    const studentInfo = await prisma.student.findFirst({
+        where: {
+            userId: id
+        }
+    })
+
+    if (!studentInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Student does not exist")
+    }
+
+    const { id: sId } = studentInfo
+    const existingRelatedWorks = await prisma.relatedWorksStudent.findFirst({
+        where: {
+            studentId: sId,
+            interestId: interestId
+        }
+    });
+
+    if (existingRelatedWorks) {
+        await prisma.relatedWorksStudent.delete({
+            where: {
+                interestId_studentId: {
+                    interestId: interestId,
+                    studentId: sId
+                }
+            }
+        });
+        const assignRelatedWorksData = await prisma.relatedWorksStudent.findMany({
+            where: {
+                studentId: sId
+            },
+            include: {
+                interest: true
+            }
+        })
+        return assignRelatedWorksData
+    }
+
+    return ""
+}
+
+const getAssignRelatedWorks = async (
+    id: string,
+    filters: IInterestFilterRequest,
+    options: IPaginationOptions
+): Promise<IGenericResponse<Interest[]>> => {
+
+    const { page, limit, skip } = paginationHelpers.calculatePagination(options);
+    const { searchTerm, ...filterData } = filters
+
+
+
+    const studentInfo = await prisma.student.findFirst({
+        where: {
+            userId: id
+        }
+    })
+
+    if (!studentInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Student does not exist")
+    }
+
+
+    const { id: sId } = studentInfo
+    const existingRelatedWorks = await prisma.relatedWorksStudent.findMany({
+        where: {
+            studentId: sId
+        },
+        include: {
+            interest: true
+        }
+    })
+
+
+
+
+    if (existingRelatedWorks.length === 0) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Student did not create any related works");
+    }
+
+    const andConditions = []
+    if (searchTerm) {
+        andConditions.push({
+            OR: interestSearchableFields.map((field) => ({
+                [field]: {
+                    contains: searchTerm,
+                    mode: 'insensitive'
+                }
+            }))
+        })
+    }
+
+    if (Object.keys(filterData).length > 0) {
+        andConditions.push({
+            AND: Object.keys(filterData).map((key) => ({
+                [key]: {
+                    equals: (filterData as any)[key]
+                }
+            }))
+        })
+    }
+
+    const whereConditions: Prisma.InterestWhereInput =
+        andConditions.length > 0 ? { AND: andConditions } : {}
+
+
+
+    const interestIds: string[] = [];
+
+    existingRelatedWorks.forEach(item => {
+        interestIds.push(item.interestId);
+    });
+
+    let result = []
+    let result1 = []
+    let total = null
+
+    if (searchTerm) {
+
+        result1 = await prisma.interest.findMany({
+            where: {
+                AND: [
+                    { id: { in: interestIds } },
+                    whereConditions
+                ]
+            },
+            orderBy: options.sortBy && options.sortOrder
+                ? {
+                    [options.sortBy]: options.sortOrder
+                } : {
+                    title: 'asc'
+                }
+        });
+
+        result = await prisma.interest.findMany({
+            where: {
+                AND: [
+                    { id: { in: interestIds } },
+                    whereConditions
+                ]
+            },
+            skip,
+            take: limit,
+            include: {
+                RelatedWorksStudent: true
+            },
+            orderBy: options.sortBy && options.sortOrder
+                ? {
+                    [options.sortBy]: options.sortOrder
+                } : {
+                    title: 'asc'
+                }
+        });
+
+        total = result1.length
+    }
+
+    else {
+        result = await prisma.interest.findMany({
+            where: {
+                AND: [
+                    { id: { in: interestIds } },
+                    whereConditions
+                ]
+            },
+            skip,
+            take: limit,
+            include: {
+                RelatedWorksStudent: true
+            },
+            orderBy: options.sortBy && options.sortOrder
+                ? {
+                    [options.sortBy]: options.sortOrder
+                } : {
+                    title: 'asc'
+                }
+        });
+
+        total = await prisma.relatedWorksStudent.count({
+            where: {
+                studentId: sId,
+            },
+        });
+    }
+
+    return {
+        meta: {
+            total,
+            page,
+            limit
+        },
+        data: result
+    };
+}
 
 const enrollFaculties = async (
     id: string,
@@ -1139,6 +1627,12 @@ export const StudentService = {
     getAssignInterest,
     assignSkill,
     updateSkillStatus,
+    deleteSkill,
+    getAssignSkill,
+    assignRelatedWork,
+    updateRelatedWorks,
+    deleteRelatedWorks,
+    getAssignRelatedWorks,
     enrollFaculties,
     unenrollFaculty,
     getEnrolledFaculties,

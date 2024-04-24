@@ -92,10 +92,89 @@ const updateSkillStatus = catchAsync(async (req: Request, res: Response) => {
     sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
-        message: 'skill status updated successfully',
+        message: 'Skill status updated successfully',
         data: result
     });
 });
+
+const deleteSkill = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const result = await StudentService.deleteSkill(id, req.body.interest)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Delete skill data successfully",
+        data: result
+    })
+})
+
+const getAssignSkill = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const filters = pick(req.query, interestFilterableFields)
+    const options = pick(req.query, ['size', 'page', 'sortBy', 'sortOrder'])
+    const result = await StudentService.getAssignSkill(id, filters, options)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Assign skill data retrieved successfully",
+        meta: result.meta,
+        data: result.data
+    })
+})
+
+const assignRelatedWork = catchAsync(async (req: Request, res: Response) => {
+    const { id, interestId } = req.params;
+    const result = await StudentService.assignRelatedWork(id, interestId, req.body)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Assign related works data successfully",
+        data: result
+    })
+})
+
+const updateRelatedWorks = catchAsync(async (req: Request, res: Response) => {
+    const { id, interestId } = req.params;
+    const result = await StudentService.updateRelatedWorks(id, interestId, req.body);
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Related works updated successfully',
+        data: result
+    });
+});
+
+const deleteRelatedWorks = catchAsync(async (req: Request, res: Response) => {
+    const { id, interestId } = req.params;
+
+    const result = await StudentService.deleteRelatedWorks(id, interestId)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Delete related works data successfully",
+        data: result
+    })
+})
+
+const getAssignRelatedWorks = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const filters = pick(req.query, interestFilterableFields)
+    const options = pick(req.query, ['size', 'page', 'sortBy', 'sortOrder'])
+    const result = await StudentService.getAssignRelatedWorks(id, filters, options)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Assign related works data retrieved successfully",
+        meta: result.meta,
+        data: result.data
+    })
+})
 
 const enrollFaculties = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
@@ -198,6 +277,12 @@ export const StudentController = {
     getAssignInterest,
     assignSkill,
     updateSkillStatus,
+    deleteSkill,
+    getAssignSkill,
+    assignRelatedWork,
+    updateRelatedWorks,
+    deleteRelatedWorks,
+    getAssignRelatedWorks,
     enrollFaculties,
     unenrollFaculty,
     getEnrolledFaculties,
