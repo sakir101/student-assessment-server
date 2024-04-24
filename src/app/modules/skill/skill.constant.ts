@@ -1,0 +1,1 @@
+export const skillStatus = ["Expert", "Proficient", 'Competent', 'Novice'];

@@ -74,6 +74,29 @@ const getAssignInterest = catchAsync(async (req: Request, res: Response) => {
     })
 })
 
+const assignSkill = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await StudentService.assignSkill(id, req.body.interest)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Assign skill data successfully",
+        data: result
+    })
+})
+
+const updateSkillStatus = catchAsync(async (req: Request, res: Response) => {
+    const { id, interestId } = req.params;
+    const result = await StudentService.updateSkillStatus(id, interestId, req.body);
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'skill status updated successfully',
+        data: result
+    });
+});
+
 const enrollFaculties = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
     const result = await StudentService.enrollFaculties(id, req.body.faculty)
@@ -173,6 +196,8 @@ export const StudentController = {
     assignInterest,
     deleteInterest,
     getAssignInterest,
+    assignSkill,
+    updateSkillStatus,
     enrollFaculties,
     unenrollFaculty,
     getEnrolledFaculties,

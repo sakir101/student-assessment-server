@@ -1,4 +1,6 @@
 import express from 'express';
+import validateRequest from '../../middlewares/validateRequest';
+import { SkillValidation } from '../skill/skill.validation';
 import { StudentController } from './student.controller';
 
 
@@ -26,14 +28,23 @@ router.get('/:id/:taskId',
 router.get('/getAllSpecificCompleteTask/complete/:id',
     StudentController.getAllSpecificCompleteStudentTask)
 
+router.patch('/:id/:interestId/skill-status',
+    validateRequest(SkillValidation.skillUpdateZodSchema),
+    StudentController.updateSkillStatus)
+
 router.patch('/:id/:taskId',
     StudentController.taskSolutionAddedByStudent)
+
+
 
 router.post('/:id/assign-interests',
     StudentController.assignInterest)
 
 router.post('/:id/delete-interests',
     StudentController.deleteInterest)
+
+router.post('/:id/assign-skills',
+    StudentController.assignSkill)
 
 router.post('/:id/enroll-faculties',
     StudentController.enrollFaculties)

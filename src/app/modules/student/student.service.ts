@@ -1,4 +1,4 @@
-import { Faculty, FacultyEnrollment, Interest, InterestStudent, Prisma, Student, TaskStudent } from "@prisma/client";
+import { Faculty, FacultyEnrollment, Interest, InterestStudent, Prisma, SkillStudent, Student, TaskStudent } from "@prisma/client";
 import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiError";
 import { paginationHelpers } from "../../../helpers/paginationHelper";
@@ -11,6 +11,7 @@ import { interestSearchableFields } from "../interest/interest.constant";
 import { IInterestFilterRequest } from "../interest/interest.interface";
 import { taskSearchableFields } from "../task/task.constant";
 import { ITakFilterRequest } from "../task/task.interface";
+
 
 
 const getStudentByUserId = async (id: string): Promise<Student | null> => {
@@ -290,6 +291,106 @@ const getAssignInterest = async (
         data: result
     };
 }
+
+const assignSkill = async (
+    id: string,
+    payload: string[]
+): Promise<SkillStudent[]> => {
+    const studentInfo = await prisma.student.findFirst({
+        where: {
+            userId: id
+        }
+    });
+
+    if (!studentInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Student does not exist");
+    }
+
+    const { id: sId } = studentInfo;
+    const existingSkills = await prisma.skillStudent.findMany({
+        where: {
+            studentId: sId,
+            interestId: {
+                in: payload,
+            },
+        },
+    });
+
+    const existingSkillIds = existingSkills.map((skill) => skill.interestId);
+    const newSkillsToCreate = payload.filter((skillId) => !existingSkillIds.includes(skillId));
+
+    await prisma.skillStudent.createMany({
+        data: newSkillsToCreate.map((skillId) => ({
+            interestId: skillId,
+            studentId: sId,
+            status: "NotSet"
+        })),
+    });
+
+    const assignSkillData = await prisma.skillStudent.findMany({
+        where: {
+            studentId: sId
+        },
+        include: {
+            interest: true
+        }
+    });
+
+    return assignSkillData;
+};
+
+const updateSkillStatus = async (
+    id: string,
+    interestId: string,
+    payload: Partial<SkillStudent>
+) => {
+
+    const studentInfo = await prisma.student.findFirst({
+        where: {
+            userId: id
+        }
+    });
+
+    if (!studentInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Student does not exist");
+    }
+
+    const { id: sId } = studentInfo;
+
+    const existingSkill = await prisma.skillStudent.findFirst({
+        where: {
+            studentId: sId,
+            interestId: interestId
+        }
+    });
+
+    if (!existingSkill) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Skill not found for this student");
+    }
+
+    console.log(existingSkill)
+
+    const updatedSkill = await prisma.skillStudent.update({
+        where: {
+            interestId_studentId: {
+                studentId: sId,
+                interestId: existingSkill.interestId
+            }
+        },
+        data: {
+            status: payload.status
+        }
+    });
+
+
+    if (!updatedSkill) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Skill status update failed");
+    }
+
+    return updatedSkill;
+};
+
+
 
 const enrollFaculties = async (
     id: string,
@@ -1036,6 +1137,8 @@ export const StudentService = {
     assignInterest,
     deleteInterest,
     getAssignInterest,
+    assignSkill,
+    updateSkillStatus,
     enrollFaculties,
     unenrollFaculty,
     getEnrolledFaculties,
