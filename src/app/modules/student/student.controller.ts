@@ -125,6 +125,18 @@ const getAssignSkill = catchAsync(async (req: Request, res: Response) => {
     })
 })
 
+const getSingleSkill = catchAsync(async (req: Request, res: Response) => {
+    const { id, interestId } = req.params;
+    const result = await StudentService.getSingleSkill(id, interestId)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Skill retrieved successfully",
+        data: result
+    })
+})
+
 const assignRelatedWork = catchAsync(async (req: Request, res: Response) => {
     const { id, interestId } = req.params;
     const result = await StudentService.assignRelatedWork(id, interestId, req.body)
@@ -173,6 +185,18 @@ const getAssignRelatedWorks = catchAsync(async (req: Request, res: Response) => 
         message: "Assign related works data retrieved successfully",
         meta: result.meta,
         data: result.data
+    })
+})
+
+const getSingleRelatedWork = catchAsync(async (req: Request, res: Response) => {
+    const { id, interestId } = req.params;
+    const result = await StudentService.getSingleRelatedWork(id, interestId)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Related work retrieved successfully",
+        data: result
     })
 })
 
@@ -279,10 +303,12 @@ export const StudentController = {
     updateSkillStatus,
     deleteSkill,
     getAssignSkill,
+    getSingleSkill,
     assignRelatedWork,
     updateRelatedWorks,
     deleteRelatedWorks,
     getAssignRelatedWorks,
+    getSingleRelatedWork,
     enrollFaculties,
     unenrollFaculty,
     getEnrolledFaculties,

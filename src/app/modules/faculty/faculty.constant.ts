@@ -7,3 +7,4 @@ export const facultyFilterableFields: string[] = [
 export const facultySearchableFields: string[] = [
     'firstName'
 ];
+

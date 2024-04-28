@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { status } from "./task.constant";
 
 const create = z.object({
     body: z.object({
@@ -28,8 +29,27 @@ const assignTaskHint = z.object({
     })
 });
 
+const assignTaskFeedback = z.object({
+    body: z.object({
+        comment: z.string().optional(),
+        status: z.enum([...status] as [string, ...string[]], {
+            required_error: 'Status is required'
+        }),
+
+    })
+})
+
+const updateTaskFeedback = z.object({
+    body: z.object({
+        comment: z.string().optional(),
+        status: z.enum([...status] as [string, ...string[]]).optional()
+    })
+})
+
 export const TaskValidation = {
     create,
     update,
-    assignTaskHint
+    assignTaskHint,
+    assignTaskFeedback,
+    updateTaskFeedback
 };

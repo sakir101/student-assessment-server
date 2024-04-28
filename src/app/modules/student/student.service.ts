@@ -592,6 +592,38 @@ const getAssignSkill = async (
     };
 }
 
+const getSingleSkill = async (
+    id: string,
+    interestId: string
+): Promise<SkillStudent> => {
+    const studentInfo = await prisma.student.findFirst({
+        where: {
+            userId: id
+        }
+    })
+
+    if (!studentInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Student does not exist")
+    }
+
+    const { id: sId } = studentInfo
+    const singleSkill = await prisma.skillStudent.findFirst({
+        where: {
+            studentId: sId,
+            interestId: interestId
+        },
+        include: {
+            interest: true
+        }
+    });
+
+    if (!singleSkill) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Skill not found");
+    }
+
+    return singleSkill
+}
+
 const assignRelatedWork = async (
     id: string,
     interestId: string,
@@ -878,6 +910,38 @@ const getAssignRelatedWorks = async (
         },
         data: result
     };
+}
+
+const getSingleRelatedWork = async (
+    id: string,
+    interestId: string
+): Promise<RelatedWorksStudent> => {
+    const studentInfo = await prisma.student.findFirst({
+        where: {
+            userId: id
+        }
+    })
+
+    if (!studentInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Student does not exist")
+    }
+
+    const { id: sId } = studentInfo
+    const singleRelatedWork = await prisma.relatedWorksStudent.findFirst({
+        where: {
+            studentId: sId,
+            interestId: interestId
+        },
+        include: {
+            interest: true
+        }
+    });
+
+    if (!singleRelatedWork) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Related work not found");
+    }
+
+    return singleRelatedWork
 }
 
 const enrollFaculties = async (
@@ -1230,6 +1294,10 @@ const getAllSpecificIncompleteStudentTask = async (
                             },
                         });
 
+                        if (!tasks) {
+                            throw new ApiError(httpStatus.NOT_FOUND, "Faculty did not assign any task");
+                        }
+
                         const facultyTaskIds = tasks.map((task) => task.taskId);
                         commonTaskIds = facultyTaskIds.filter(taskId => studentIncompleteTaskIds.includes(taskId));
 
@@ -1508,6 +1576,10 @@ const getAllSpecificCompleteStudentTask = async (
                             },
                         });
 
+                        if (!tasks) {
+                            throw new ApiError(httpStatus.NOT_FOUND, "Faculty did not assign any task");
+                        }
+
                         const facultyTaskIds = tasks.map((task) => task.taskId);
                         commonTaskIds = facultyTaskIds.filter(taskId => studentCompleteTaskIds.includes(taskId));
 
@@ -1516,11 +1588,6 @@ const getAllSpecificCompleteStudentTask = async (
             )
         });
     }
-
-
-
-
-
 
     const whereConditions: Prisma.TaskWhereInput =
         andConditions.length > 0 ? { AND: andConditions } : {};
@@ -1618,6 +1685,31 @@ const getAllSpecificCompleteStudentTask = async (
     };
 }
 
+const getAllFeedbackTask = async (
+    id: string,
+    filters: ITakFilterRequest,
+    options: IPaginationOptions
+) => {
+    const { page, limit, skip } = paginationHelpers.calculatePagination(options);
+    const { searchTerm, ...filterData } = filters;
+
+    const studentInfo = await prisma.student.findFirst({
+        where: {
+            userId: id
+        }
+    });
+
+
+    if (!studentInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Student does not exist");
+    }
+
+    const { id: sId } = studentInfo;
+
+
+
+}
+
 
 export const StudentService = {
     getStudentByUserId,
@@ -1629,10 +1721,12 @@ export const StudentService = {
     updateSkillStatus,
     deleteSkill,
     getAssignSkill,
+    getSingleSkill,
     assignRelatedWork,
     updateRelatedWorks,
     deleteRelatedWorks,
     getAssignRelatedWorks,
+    getSingleRelatedWork,
     enrollFaculties,
     unenrollFaculty,
     getEnrolledFaculties,

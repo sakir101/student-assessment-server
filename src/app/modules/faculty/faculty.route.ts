@@ -1,5 +1,6 @@
 import express from 'express';
 import validateRequest from '../../middlewares/validateRequest';
+import { RelatedWorksValidation } from '../relatedWorks/relatedWorks.validation';
 import { TaskValidation } from '../task/task.validation';
 import { FacultyController } from './faculty.controller';
 
@@ -14,6 +15,12 @@ router.get('/:id/faculty-id',
 
 router.get('/getExpertise/:id',
     FacultyController.getAssignInterest)
+
+router.get('/getRelatedWorksFaculty/:id',
+    FacultyController.getAssignRelatedWorksFaculty)
+
+router.get('/getSingleRelatedWorkFaculty/:id/:interestId',
+    FacultyController.getSingleRelatedWorkFaculty)
 
 router.get('/:id/getSpecificFaculty',
     FacultyController.getSpecificFaculty)
@@ -36,6 +43,16 @@ router.get('/getUnassignTaskStudents/:id/:taskId',
 router.get('/task/hint/:id',
     FacultyController.getSingleTaskHint)
 
+router.get('/getAllSpecificCompleteTask/complete/student/:id',
+    FacultyController.getAllCompleteStudentTasks)
+
+router.get('/getAllSpecificCompleteTaskStudents/complete/task/:taskId',
+    FacultyController.getAllCompleteTaskStudents)
+
+router.patch('/:id/:interestId/related-works-faculty',
+    validateRequest(RelatedWorksValidation.relatedWorksUpdateZodSchema),
+    FacultyController.updateRelatedWorksFaculty)
+
 router.patch('/:id/:taskId',
     validateRequest(TaskValidation.update),
     FacultyController.updateSingleSpecificFacultyTask)
@@ -50,6 +67,14 @@ router.post('/:id/delete-expertise',
 router.post('/:id/assign-interests-faculty',
     FacultyController.assignInterestFaculty)
 
+router.post('/:id/:interestId/assign-related-works-faculty',
+    validateRequest(RelatedWorksValidation.relatedWorksCreateZodSchema),
+    FacultyController.assignRelatedWorkFaculty)
+
+router.patch('/updateTaskFeedback/update/:taskId/:facultyId/:studentId',
+    validateRequest(TaskValidation.updateTaskFeedback),
+    FacultyController.updateTaskFeedback)
+
 router.post('/:id/:taskId',
     validateRequest(TaskValidation.assignTaskHint),
     FacultyController.assignTaskHint)
@@ -60,10 +85,17 @@ router.post('/assignTask/:id/:taskId',
 router.post('/unassignTask/:id/:taskId',
     FacultyController.unassignTask)
 
+router.post('/assignTaskFeedback/:taskId/:facultyId/:studentId',
+    validateRequest(TaskValidation.assignTaskFeedback),
+    FacultyController.assignTaskFeedback)
+
 router.delete('/:taskId/:hintId',
     FacultyController.removeTaskHint)
 
 router.delete('/removeTask/:id/:taskId',
     FacultyController.removeSingleSpecificFacultyTask)
+
+router.delete('/:id/:interestId/related-works',
+    FacultyController.deleteRelatedWorksFaculty)
 
 export const FacultyRoutes = router

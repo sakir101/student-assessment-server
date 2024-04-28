@@ -19,8 +19,14 @@ router.get('/getInterest/:id',
 router.get('/getSkill/:id',
     StudentController.getAssignSkill)
 
+router.get('/getSingleSkill/:id/:interestId',
+    StudentController.getSingleSkill)
+
 router.get('/getRelatedWorks/:id',
     StudentController.getAssignRelatedWorks)
+
+router.get('/getSingleRelatedWork/:id/:interestId',
+    StudentController.getSingleRelatedWork)
 
 router.get('/getEnrolledFaculties/:id',
     StudentController.getEnrolledFaculties)

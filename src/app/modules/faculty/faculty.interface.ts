@@ -5,3 +5,5 @@ export type IFacultyFilterRequest = {
 export type TaskHintPayload = {
     description: string;
 }
+
+

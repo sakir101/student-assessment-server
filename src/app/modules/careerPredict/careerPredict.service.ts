@@ -24,6 +24,25 @@ const careerPrediction = async (id: string) => {
                 interest: true
             }
         })
+
+        const assignSkillData = await prisma.skillStudent.findMany({
+            where: {
+                studentId: sId
+            },
+            include: {
+                interest: true
+            }
+        })
+
+        const assignRelatedWorksData = await prisma.relatedWorksStudent.findMany({
+            where: {
+                studentId: sId
+            },
+            include: {
+                interest: true
+            }
+        })
+
         const interest: string[] = [];
 
 
@@ -31,19 +50,40 @@ const careerPrediction = async (id: string) => {
             throw new ApiError(httpStatus.NOT_FOUND, "Student did not select any interest");
         }
 
+        if (assignSkillData.length === 0) {
+            throw new ApiError(httpStatus.NOT_FOUND, "Student did not select any skill");
+        }
 
-        if (assignInterestData) {
+        if (assignRelatedWorksData.length === 0) {
+            throw new ApiError(httpStatus.NOT_FOUND, "Student did not create any related work");
+        }
+
+
+        if (assignInterestData && assignSkillData && assignRelatedWorksData) {
             const interestIds: string[] = [];
+            const skillIds: string[] = [];
+            const relatedWorksIds: string[] = [];
 
-            // Map through the data array and extract interestId from each object
             assignInterestData.forEach(item => {
                 interestIds.push(item.interestId);
             });
 
+            assignSkillData.forEach(item => {
+                skillIds.push(item.interestId);
+            });
+
+            assignRelatedWorksData.forEach(item => {
+                relatedWorksIds.push(item.interestId);
+            });
+
+            const allIds = [...interestIds, ...skillIds, ...relatedWorksIds];
+
+            const combinedIds = Array.from(new Set(allIds));
+
             const interestData = await prisma.interest.findMany({
                 where: {
                     id: {
-                        in: interestIds,
+                        in: combinedIds,
                     },
                 },
             });
@@ -53,33 +93,20 @@ const careerPrediction = async (id: string) => {
             })
         }
 
-        // const skill: string[] = [];
-
-        const key = 'key'; // Define the key name
-
-        // Concatenate all interest values using Array.join() method
+        const key = 'key';
         const concatenatedInterests = interest.join(', ');
 
-        // Create an object with the specified key and concatenated interests
         const obj = {
             [key]: concatenatedInterests
         };
 
-        // console.log(obj);
-
-        // const combinedArray = [...new Set([...skill, ...interest])];
-
-        // console.log(combinedArray);
-
         const interestData = obj[key];
-        const apiUrl = "https://1c56-59-153-102-215.ngrok-free.app/";
 
+        const apiUrl = "https://d9cf-103-180-245-250.ngrok-free.app";
 
         const response = await axios.post(apiUrl, { interest: interestData });
 
         const prediction = response.data;
-
-
 
         return prediction
 

@@ -75,6 +75,69 @@ const deleteInterest = catchAsync(async (req: Request, res: Response) => {
     })
 })
 
+const assignRelatedWorkFaculty = catchAsync(async (req: Request, res: Response) => {
+    const { id, interestId } = req.params;
+    const result = await FacultyService.assignRelatedWorkFaculty(id, interestId, req.body)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Assign related works data successfully",
+        data: result
+    })
+})
+
+const updateRelatedWorksFaculty = catchAsync(async (req: Request, res: Response) => {
+    const { id, interestId } = req.params;
+    const result = await FacultyService.updateRelatedWorksFaculty(id, interestId, req.body);
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Related works updated successfully',
+        data: result
+    });
+});
+
+const deleteRelatedWorksFaculty = catchAsync(async (req: Request, res: Response) => {
+    const { id, interestId } = req.params;
+
+    const result = await FacultyService.deleteRelatedWorksFaculty(id, interestId)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Delete related works data successfully",
+        data: result
+    })
+})
+
+const getAssignRelatedWorksFaculty = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const filters = pick(req.query, interestFilterableFields)
+    const options = pick(req.query, ['size', 'page', 'sortBy', 'sortOrder'])
+    const result = await FacultyService.getAssignRelatedWorksFaculty(id, filters, options)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Assign related works data retrieved successfully",
+        meta: result.meta,
+        data: result.data
+    })
+})
+
+const getSingleRelatedWorkFaculty = catchAsync(async (req: Request, res: Response) => {
+    const { id, interestId } = req.params;
+    const result = await FacultyService.getSingleRelatedWorkFaculty(id, interestId)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Related work retrieved successfully",
+        data: result
+    })
+})
+
 const getSpecificFaculty = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
     const filters = pick(req.query, facultyFilterableFields)
@@ -254,12 +317,65 @@ const removeSingleSpecificFacultyTask = catchAsync(async (req: Request, res: Res
     });
 });
 
+const getAllCompleteStudentTasks = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const filters = pick(req.query, taskFilterableFields)
+    const options = pick(req.query, ['size', 'page', 'sortBy', 'sortOrder'])
+    const result = await FacultyService.getAllCompleteStudentTasks(id, filters, options)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Task data retrieved successfully",
+        meta: result.meta,
+        data: result.data
+    })
+})
+
+const getAllCompleteTaskStudents = catchAsync(async (req: Request, res: Response) => {
+    const { taskId } = req.params;
+    const result = await FacultyService.getAllCompleteTaskStudents(taskId)
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Completed task student successfully",
+        data: result
+    })
+})
+
+const assignTaskFeedback = catchAsync(async (req: Request, res: Response) => {
+    const { taskId, facultyId, studentId } = req.params;
+    const result = await FacultyService.assignTaskFeedback(taskId, facultyId, studentId, req.body)
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Completed task student successfully",
+        data: result
+    })
+})
+
+const updateTaskFeedback = catchAsync(async (req: Request, res: Response) => {
+    const { taskId, facultyId, studentId } = req.params;
+    const result = await FacultyService.updateTaskFeedback(taskId, facultyId, studentId, req.body)
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Completed task student successfully",
+        data: result
+    })
+})
+
 export const FacultyController = {
     getFacultyByUserId,
     getFacultyByFacultyId,
     assignInterestFaculty,
     getAssignInterest,
     deleteInterest,
+    assignRelatedWorkFaculty,
+    updateRelatedWorksFaculty,
+    deleteRelatedWorksFaculty,
+    getAssignRelatedWorksFaculty,
+    getSingleRelatedWorkFaculty,
     getSpecificFaculty,
     getEnrolledStudents,
     getAllSpecificFacultyTask,
@@ -273,5 +389,9 @@ export const FacultyController = {
     getAssignTaskStudent,
     getUnassignTaskStudent,
     unassignTask,
-    removeSingleSpecificFacultyTask
+    removeSingleSpecificFacultyTask,
+    getAllCompleteStudentTasks,
+    getAllCompleteTaskStudents,
+    assignTaskFeedback,
+    updateTaskFeedback
 }
