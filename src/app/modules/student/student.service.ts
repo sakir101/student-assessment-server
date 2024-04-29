@@ -1,4 +1,4 @@
-import { Faculty, FacultyEnrollment, Interest, InterestStudent, Prisma, RelatedWorksStudent, SkillStudent, Student, TaskStudent } from "@prisma/client";
+import { Faculty, FacultyEnrollment, Interest, InterestStudent, Prisma, RelatedWorksStudent, SkillStudent, Student, Task, TaskFeedback, TaskStudent } from "@prisma/client";
 import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiError";
 import { paginationHelpers } from "../../../helpers/paginationHelper";
@@ -1217,7 +1217,7 @@ const getAllSpecificIncompleteStudentTask = async (
     id: string,
     filters: ITakFilterRequest,
     options: IPaginationOptions
-) => {
+): Promise<IGenericResponse<Task[]>> => {
     const { page, limit, skip } = paginationHelpers.calculatePagination(options);
     const { searchTerm, ...filterData } = filters;
 
@@ -1498,7 +1498,7 @@ const getAllSpecificCompleteStudentTask = async (
     id: string,
     filters: ITakFilterRequest,
     options: IPaginationOptions
-) => {
+): Promise<IGenericResponse<Task[]>> => {
     const { page, limit, skip } = paginationHelpers.calculatePagination(options);
     const { searchTerm, ...filterData } = filters;
 
@@ -1689,7 +1689,7 @@ const getAllFeedbackTask = async (
     id: string,
     filters: ITakFilterRequest,
     options: IPaginationOptions
-) => {
+): Promise<IGenericResponse<Task[]>> => {
     const { page, limit, skip } = paginationHelpers.calculatePagination(options);
     const { searchTerm, ...filterData } = filters;
 
@@ -1706,7 +1706,209 @@ const getAllFeedbackTask = async (
 
     const { id: sId } = studentInfo;
 
+    const studentTaskFeedback = await prisma.taskFeedback.findMany({
+        where: {
+            studentId: sId
+        },
+        include: {
+            task: true,
+            faculty: true
+        }
+    });
 
+    const studentTaskFeedbackIds = studentTaskFeedback.map(taskItem => taskItem.taskId)
+
+    let commonTaskIds: string[] = [];
+    const andConditions = [];
+
+    if (searchTerm) {
+        andConditions.push({
+            OR: taskSearchableFields.map((field) => ({
+                [field]: {
+                    contains: searchTerm,
+                    mode: 'insensitive'
+                }
+            }))
+        });
+    }
+
+    if (Object.keys(filterData).length > 0) {
+        andConditions.push({
+            AND: await Promise.all(
+                Object.entries(filterData)
+                    .filter(([key]) => key === 'facultyId')
+                    .map(async ([, value]: [string, unknown]) => {
+                        const facultyInfo = await prisma.faculty.findFirst({
+                            where: {
+                                id: value as string
+                            }
+                        });
+
+                        if (!facultyInfo) {
+                            throw new ApiError(httpStatus.NOT_FOUND, "Faculty does not exist");
+                        }
+
+                        const taskFeedback = await prisma.taskFeedback.findMany({
+                            where: {
+                                facultyId: value as string,
+                                studentId: sId
+                            },
+                            select: {
+                                task: true,
+                            },
+                        });
+
+                        if (!taskFeedback) {
+                            throw new ApiError(httpStatus.NOT_FOUND, "Faculty did not assign any task");
+                        }
+
+                        commonTaskIds = taskFeedback.map(taskItem => taskItem.task.id);
+                        return {};
+                    })
+            )
+        });
+    }
+
+    const whereConditions: Prisma.TaskWhereInput =
+        andConditions.length > 0 ? { AND: andConditions } : {};
+
+    let result = []
+    let result1 = []
+    let total = null
+
+    if (commonTaskIds.length !== 0) {
+        result1 = await prisma.task.findMany({
+            where: {
+                AND: [
+                    { id: { in: commonTaskIds } },
+                    whereConditions
+                ]
+            },
+            include: {
+                faculty: true,
+                hint: true
+            },
+            orderBy: options.sortBy && options.sortOrder
+                ? { [options.sortBy]: options.sortOrder }
+                : { title: 'asc' }
+        });
+
+        result = await prisma.task.findMany({
+            where: {
+                AND: [
+                    { id: { in: commonTaskIds } },
+                    whereConditions
+                ]
+            },
+            include: {
+                faculty: true,
+                hint: true
+            },
+            skip,
+            take: limit,
+            orderBy: options.sortBy && options.sortOrder
+                ? { [options.sortBy]: options.sortOrder }
+                : { title: 'asc' }
+        });
+
+        total = result1.length
+    }
+
+    else {
+
+        result1 = await prisma.task.findMany({
+            where: {
+                AND: [
+                    { id: { in: studentTaskFeedbackIds } },
+                    whereConditions
+                ]
+            },
+            include: {
+                faculty: true,
+                hint: true
+            },
+            orderBy: options.sortBy && options.sortOrder
+                ? { [options.sortBy]: options.sortOrder }
+                : { title: 'asc' }
+        });
+
+        result = await prisma.task.findMany({
+            where: {
+                AND: [
+                    { id: { in: studentTaskFeedbackIds } },
+                    whereConditions
+                ]
+            },
+            include: {
+                faculty: true,
+                hint: true
+            },
+            skip,
+            take: limit,
+            orderBy: options.sortBy && options.sortOrder
+                ? { [options.sortBy]: options.sortOrder }
+                : { title: 'asc' }
+        });
+
+        total = result1.length
+
+    }
+
+    return {
+        meta: {
+            total,
+            page,
+            limit
+        },
+        data: result
+    };
+
+}
+
+const getSpecificFeedbackTask = async (
+    id: string,
+    taskId: string
+): Promise<TaskFeedback> => {
+    const studentInfo = await prisma.student.findFirst({
+        where: {
+            userId: id
+        }
+    });
+
+
+    if (!studentInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Student does not exist");
+    }
+
+    const { id: sId } = studentInfo;
+
+    const taskInfo = await prisma.taskStudent.findFirst({
+        where: {
+            taskId,
+            studentId: sId
+        }
+    });
+
+    if (!taskInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Task not found for this student");
+    }
+
+    const studentTaskFeedback = await prisma.taskFeedback.findFirst({
+        where: {
+            taskId,
+            studentId: sId
+        },
+        include: {
+            task: true,
+            faculty: true
+        }
+    });
+
+    if (!studentTaskFeedback) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Task feedback not found");
+    }
+
+    return studentTaskFeedback
 
 }
 
@@ -1733,5 +1935,7 @@ export const StudentService = {
     getAllSpecificIncompleteStudentTask,
     getSingleSpecificStudentTask,
     taskSolutionAddedByStudent,
-    getAllSpecificCompleteStudentTask
+    getAllSpecificCompleteStudentTask,
+    getAllFeedbackTask,
+    getSpecificFeedbackTask
 }

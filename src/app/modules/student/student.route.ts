@@ -40,6 +40,12 @@ router.get('/:id/:taskId',
 router.get('/getAllSpecificCompleteTask/complete/:id',
     StudentController.getAllSpecificCompleteStudentTask)
 
+router.get('/getAllTaskFeedback/taskFeedback/:id',
+    StudentController.getAllFeedbackTask)
+
+router.get('/getSpecificTaskFeedback/taskFeedback/:id/:taskId',
+    StudentController.getSpecificFeedbackTask)
+
 router.patch('/:id/:interestId/skill-status',
     validateRequest(SkillValidation.skillUpdateZodSchema),
     StudentController.updateSkillStatus)

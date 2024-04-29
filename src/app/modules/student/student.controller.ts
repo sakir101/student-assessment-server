@@ -293,6 +293,33 @@ const getAllSpecificCompleteStudentTask = catchAsync(async (req: Request, res: R
     })
 })
 
+const getAllFeedbackTask = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const filters = pick(req.query, taskFilterableFields)
+    const options = pick(req.query, ['size', 'page', 'sortBy', 'sortOrder'])
+    const result = await StudentService.getAllFeedbackTask(id, filters, options)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Task feedback retrieved successfully",
+        meta: result.meta,
+        data: result.data
+    })
+})
+
+const getSpecificFeedbackTask = catchAsync(async (req: Request, res: Response) => {
+    const { id, taskId } = req.params;
+    const result = await StudentService.getSpecificFeedbackTask(id, taskId)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Single task feedback retrieved successfully",
+        data: result
+    })
+})
+
 export const StudentController = {
     getStudentByUserId,
     getStudentByStudentId,
@@ -315,5 +342,7 @@ export const StudentController = {
     getAllSpecificIncompleteStudentTask,
     getSingleSpecificStudentTask,
     taskSolutionAddedByStudent,
-    getAllSpecificCompleteStudentTask
+    getAllSpecificCompleteStudentTask,
+    getAllFeedbackTask,
+    getSpecificFeedbackTask
 }
