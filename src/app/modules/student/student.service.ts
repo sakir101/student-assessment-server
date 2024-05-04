@@ -1900,6 +1900,7 @@ const getSpecificFeedbackTask = async (
         },
         include: {
             task: true,
+            student: true,
             faculty: true
         }
     });

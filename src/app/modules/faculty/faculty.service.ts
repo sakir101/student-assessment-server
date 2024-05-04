@@ -2142,11 +2142,11 @@ const getAllCompleteTaskStudents = async (
 
 
     if (existingAssignedTask.length === 0) {
-        throw new ApiError(httpStatus.NOT_FOUND, "Faculty did not create any task");
+        throw new ApiError(httpStatus.NOT_FOUND, "Faculty did not assign any student to this task");
     }
 
 
-    const tasksWithSolution = existingAssignedTask.filter(task => task.solution !== null);
+    const tasksWithSolution = existingAssignedTask.filter(task => task.solution !== null && task.solution !== undefined);
 
     if (tasksWithSolution.length === 0) {
         throw new ApiError(httpStatus.NOT_FOUND, "Student did not complete the task");
