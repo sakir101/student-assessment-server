@@ -316,7 +316,7 @@ const assignSkill = async (
         },
     });
 
-    const existingSkillIds = existingSkills.map((skill) => skill.interestId);
+    const existingSkillIds:string[] = existingSkills.map((skill) => skill.interestId);
     const newSkillsToCreate = payload.filter((skillId) => !existingSkillIds.includes(skillId));
 
     await prisma.skillStudent.createMany({

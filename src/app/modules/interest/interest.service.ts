@@ -1,4 +1,6 @@
 import { Interest, Prisma } from "@prisma/client"
+import httpStatus from "http-status"
+import ApiError from "../../../errors/ApiError"
 import { paginationHelpers } from "../../../helpers/paginationHelper"
 import { IGenericResponse } from "../../../interfaces/common"
 import { IPaginationOptions } from "../../../interfaces/pagination"
@@ -68,9 +70,25 @@ const getAllInterest = async (
     }
 }
 
+const getSingleInterest = async (id: string): Promise<Interest | null> => {
+    const interestInfo = await prisma.interest.findFirst({
+        where: {
+            id
+        }
+    })
+
+    if (!interestInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Interest not found")
+    }
+
+
+    return interestInfo;
+}
+
 
 
 export const InterestService = {
     createInterest,
-    getAllInterest
+    getAllInterest,
+    getSingleInterest
 }

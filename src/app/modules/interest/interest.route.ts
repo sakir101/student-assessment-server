@@ -9,4 +9,7 @@ router.post('/create-interest',
 router.get('/',
     InterestController.getAllInterest)
 
+router.get('/:id',
+    InterestController.getSingleInterest)
+
 export const InterestRoutes = router;

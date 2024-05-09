@@ -88,6 +88,7 @@ const assignSkill = catchAsync(async (req: Request, res: Response) => {
 
 const updateSkillStatus = catchAsync(async (req: Request, res: Response) => {
     const { id, interestId } = req.params;
+    console.log(req.body)
     const result = await StudentService.updateSkillStatus(id, interestId, req.body);
     sendResponse(res, {
         statusCode: httpStatus.OK,

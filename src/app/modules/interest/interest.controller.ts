@@ -35,7 +35,21 @@ const getAllInterest = catchAsync(async (req: Request, res: Response) => {
     })
 })
 
+const getSingleInterest = catchAsync(async (req: Request, res: Response) => {
+
+
+    const result = await InterestService.getSingleInterest(req.params.id)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Interest data fetched",
+        data: result
+    })
+})
+
 export const InterestController = {
     createInterest,
-    getAllInterest
+    getAllInterest,
+    getSingleInterest
 }
