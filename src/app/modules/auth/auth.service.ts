@@ -155,8 +155,6 @@ const renewPassword = async (email: string): Promise<void> => {
         data: updateUser
     })
 
-    console.log(userData)
-
     sendmail(email, 'Your new password', `Here is your new password: ${password}`)
 
     if (!sendmail) {
@@ -165,7 +163,46 @@ const renewPassword = async (email: string): Promise<void> => {
 
 }
 
+const updatePassword = async (id: string, currentPass: string, newPass: string): Promise<void> => {
+    const userData = await prisma.user.findFirst({
+        where: {
+            id
+        },
+    });
+
+    if (!userData) {
+        throw new ApiError(httpStatus.NOT_FOUND, "User does not exist")
+    }
+
+    if (!userData.verifiedUser) {
+        throw new ApiError(httpStatus.UNAUTHORIZED, "User email not verified")
+    }
+
+    const passCheck = await isPasswordMatched(currentPass, userData.password)
+
+    if (!passCheck) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Current password not matched")
+    }
+
+    const newPassword = await bcrypt.hash(
+        newPass,
+        Number(config.bycrypt_salt_rounds)
+    )
+
+    const updateUser = {
+        password: newPassword
+    }
+
+    await prisma.user.update({
+        where: {
+            id: id
+        },
+        data: updateUser
+    })
+}
+
 export const AuthService = {
     loginUser,
-    renewPassword
+    renewPassword,
+    updatePassword
 }

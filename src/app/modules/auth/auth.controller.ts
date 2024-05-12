@@ -34,7 +34,6 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
 
 const renewPassword = catchAsync(async (req: Request, res: Response) => {
     const { email } = req.body;
-    console.log(email)
 
     await AuthService.renewPassword(email)
 
@@ -45,7 +44,20 @@ const renewPassword = catchAsync(async (req: Request, res: Response) => {
     })
 })
 
+const updatePassword = catchAsync(async (req: Request, res: Response) => {
+    const { currentPass, newPass } = req.body;
+
+    await AuthService.updatePassword(req.params.id, currentPass, newPass)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Password update successfully',
+    })
+})
+
 export const AuthController = {
     loginUser,
-    renewPassword
+    renewPassword,
+    updatePassword
 }
