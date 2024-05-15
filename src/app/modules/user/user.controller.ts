@@ -6,8 +6,6 @@ import { UserService } from "./user.service";
 
 const createStudent = catchAsync(async (req: Request, res: Response) => {
 
-    // const { student, ...userData } = req.body
-
     const result = await UserService.createStudent(req)
 
     sendResponse(res, {
@@ -16,8 +14,6 @@ const createStudent = catchAsync(async (req: Request, res: Response) => {
         message: 'User created successfully',
         data: result
     });
-
-
 })
 
 const createFaculty = catchAsync(async (req: Request, res: Response) => {
@@ -31,12 +27,37 @@ const createFaculty = catchAsync(async (req: Request, res: Response) => {
         message: 'User created successfully',
         data: result
     });
-
-
 })
+
+const updateStudentInfo = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await UserService.updateStudentInfo(id, req)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Student info updated successfully',
+        data: result
+    });
+})
+
+const updateFacultyInfo = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await UserService.updateFacultyInfo(id, req)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Faculty info updated successfully',
+        data: result
+    });
+})
+
 
 
 export const UserController = {
     createStudent,
-    createFaculty
+    createFaculty,
+    updateStudentInfo,
+    updateFacultyInfo
 }

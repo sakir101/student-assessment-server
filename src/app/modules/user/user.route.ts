@@ -24,4 +24,20 @@ router.post('/create-faculty',
     }
 )
 
+router.patch('/update-student/:id',
+    FileUploadHelper.upload.single('file'),
+    (req: Request, res: Response, next: NextFunction) => {
+        req.body = UserValidation.studentUpdateZodSchema.parse(JSON.parse(req.body.data))
+        return UserController.updateStudentInfo(req, res, next)
+    }
+)
+
+router.patch('/update-faculty/:id',
+    FileUploadHelper.upload.single('file'),
+    (req: Request, res: Response, next: NextFunction) => {
+        req.body = UserValidation.facultyUpdateZodSchema.parse(JSON.parse(req.body.data))
+        return UserController.updateFacultyInfo(req, res, next)
+    }
+)
+
 export const UserRoutes = router;

@@ -645,8 +645,52 @@ const getSpecificFaculties = async (
         }
     })
 
+    const existingSkillData = await prisma.skillStudent.findMany({
+        where: {
+            studentId: sId
+        },
+        include: {
+            interest: true
+        }
+    })
+
+
     if (existingInterests.length === 0) {
         throw new ApiError(httpStatus.NOT_FOUND, "Student did not select any interest");
+    }
+    if (existingSkillData.length === 0) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Student did not select any skill");
+    }
+
+    const interestWithTitle: string[] = [];
+
+    if (existingInterests && existingSkillData) {
+        const interestIds: string[] = [];
+        const skillIds: string[] = [];
+
+        existingInterests.forEach(item => {
+            interestIds.push(item.interestId);
+        });
+
+        existingSkillData.forEach(item => {
+            skillIds.push(item.interestId);
+        });
+
+        const allIds = [...interestIds, ...skillIds];
+
+        const combinedIds = Array.from(new Set(allIds));
+
+        const interestData = await prisma.interest.findMany({
+            where: {
+                id: {
+                    in: combinedIds,
+                },
+            },
+        });
+
+        interestData.forEach(item => {
+            interestWithTitle.push(item.title)
+        })
     }
 
     if (searchTerm || Object.keys(filterData).length > 0) {
@@ -695,17 +739,14 @@ const getSpecificFaculties = async (
 
     else {
 
-        const interest = existingInterests.map(item => item.interest.title);
-
-
         // Add matching interest condition
-        if (interest.length > 0) {
+        if (interestWithTitle.length > 0) {
             andConditions.push({
                 InterestFaculty: {
                     some: {
                         interest: {
                             title: {
-                                in: interest
+                                in: interestWithTitle
                             }
                         }
                     }

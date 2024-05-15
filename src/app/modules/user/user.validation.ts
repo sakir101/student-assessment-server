@@ -90,8 +90,34 @@ const facultyFileUploadZodSchema = z.object({
 
 })
 
+const studentUpdateZodSchema = z.object({
+    student: z.object({
+        studentId: z.string().optional(),
+        firstName: z.string().optional(),
+        middleName: z.string().optional(),
+        lastName: z.string().optional(),
+        gender: z.enum([...gender] as [string, ...string[]],).optional(),
+    })
+
+})
+
+const facultyUpdateZodSchema = z.object({
+    faculty: z.object({
+        facultyId: z.string().optional(),
+        firstName: z.string().optional(),
+        middleName: z.string().optional(),
+        lastName: z.string().optional(),
+        institution: z.string().optional(),
+        contactNum: z.string().optional(),
+        gender: z.enum([...gender] as [string, ...string[]],).optional(),
+    })
+
+})
+
 export const UserValidation = {
     createStudentZodSchema,
     studentFileUploadZodSchema,
-    facultyFileUploadZodSchema
+    facultyFileUploadZodSchema,
+    studentUpdateZodSchema,
+    facultyUpdateZodSchema
 }

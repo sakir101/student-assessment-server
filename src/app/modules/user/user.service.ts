@@ -18,9 +18,6 @@ const createStudent = async (req: Request) => {
 
     const { student: studentData, ...userData } = req.body
 
-    console.log(userData)
-    console.log(studentData)
-
     if (userData && studentData) {
         if (file === undefined) {
             studentData.profileImage = 'https://res.cloudinary.com/dporza1qj/image/upload/v1707104604/profile_sllerv.png'
@@ -33,9 +30,6 @@ const createStudent = async (req: Request) => {
                 studentData.profileImage = uploadImage.secure_url
             }
         }
-
-
-
 
         const res = mailValidationCheck(userData.email, studentData.institution)
 
@@ -133,8 +127,6 @@ const createFaculty = async (req: Request) => {
 
     const { faculty: facultyData, ...userData } = req.body
 
-
-
     if (userData && facultyData) {
         if (file === undefined) {
             facultyData.profileImage = 'https://res.cloudinary.com/dporza1qj/image/upload/v1707104604/profile_sllerv.png'
@@ -196,9 +188,117 @@ const createFaculty = async (req: Request) => {
         return newUser
 
     }
+}
+
+const updateStudentInfo = async (id: string, req: Request) => {
+    const file = req.file as IUploadFile;
+
+    console.log(file)
+    const { student: studentData } = req.body
+    console.log(studentData)
+
+    if (studentData) {
+
+        const studentInfo = await prisma.student.findFirst({
+            where: {
+                userId: id
+            },
+        })
+
+        if (!studentInfo) {
+            throw new ApiError(httpStatus.NOT_FOUND, "Student does not exist")
+        }
+
+        if (file !== undefined) {
+            console.log("Not")
+            const uploadImage: ICloudinaryResponse = await FileUploadHelper.uploadToCloudinary(file)
+
+            if (uploadImage) {
+                studentData.profileImage = uploadImage.secure_url
+            }
+
+            else {
+                throw new ApiError(httpStatus.NOT_FOUND, "Image upload failed")
+            }
+        }
+
+        if (file === undefined) {
+            console.log("yeas")
+            studentData.profileImage = studentInfo.profileImage
+        }
+
+        const updateStudent = {
+            firstName: studentData.firstName,
+            middleName: studentData.middleName,
+            lastName: studentData.lastName,
+            gender: studentData.gender,
+            studentId: studentData.studentId,
+            profileImage: studentData.profileImage
+        }
+
+        const updatedStudentResult = await prisma.student.update({
+            where: { id: studentInfo.id },
+            data: updateStudent
+        });
+
+        return updatedStudentResult
+
+    }
+}
+
+const updateFacultyInfo = async (id: string, req: Request) => {
+    const file = req.file as IUploadFile;
 
 
+    const { faculty: facultyData } = req.body
 
+    if (facultyData) {
+
+        const facultyInfo = await prisma.faculty.findFirst({
+            where: {
+                userId: id
+            },
+        })
+
+        if (!facultyInfo) {
+            throw new ApiError(httpStatus.NOT_FOUND, "Faculty does not exist")
+        }
+
+        if (file !== undefined) {
+            const uploadImage: ICloudinaryResponse = await FileUploadHelper.uploadToCloudinary(file)
+
+            if (uploadImage) {
+                facultyData.profileImage = uploadImage.secure_url
+            }
+
+            else {
+                throw new ApiError(httpStatus.NOT_FOUND, "Image upload failed")
+            }
+        }
+
+        if (file === undefined) {
+            facultyData.profileImage = facultyInfo.profileImage
+        }
+
+        const updateFaculty = {
+            firstName: facultyData.firstName,
+            middleName: facultyData.middleName,
+            lastName: facultyData.lastName,
+            gender: facultyData.gender,
+            facultyId: facultyData.facultyId,
+            institution: facultyData.institution,
+            contactNum: facultyData.contactNum,
+            profileImage: facultyData.profileImage
+        }
+
+        const updatedFacultyResult = await prisma.faculty.update({
+            where: { id: facultyInfo.id },
+            data: updateFaculty
+        });
+
+        return updatedFacultyResult
+
+    }
 }
 
 
@@ -206,5 +306,7 @@ const createFaculty = async (req: Request) => {
 
 export const UserService = {
     createStudent,
-    createFaculty
+    createFaculty,
+    updateStudentInfo,
+    updateFacultyInfo
 }
