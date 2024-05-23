@@ -252,6 +252,19 @@ const removeTaskHint = catchAsync(async (req: Request, res: Response) => {
     });
 });
 
+const deleteSpecificTask = catchAsync(async (req: Request, res: Response) => {
+    const { id, taskId } = req.params;
+
+    const result = await FacultyService.deleteSpecificTask(id, taskId)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Delete task data successfully",
+        data: result
+    })
+})
+
 const assignTask = catchAsync(async (req: Request, res: Response) => {
     const { id, taskId } = req.params;
     const result = await FacultyService.assignTask(id, taskId, req.body.student)
@@ -393,5 +406,6 @@ export const FacultyController = {
     getAllCompleteStudentTasks,
     getAllCompleteTaskStudents,
     assignTaskFeedback,
-    updateTaskFeedback
+    updateTaskFeedback,
+    deleteSpecificTask
 }

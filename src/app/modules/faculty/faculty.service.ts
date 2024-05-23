@@ -1471,6 +1471,268 @@ const removeTaskHint = async (
 
 }
 
+const deleteSpecificTask = async (
+    id: string,
+    taskId: string,
+) => {
+    const facultyInfo = await prisma.faculty.findFirst({
+        where: {
+            userId: id
+        }
+    })
+
+    if (!facultyInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Faculty does not exist")
+    }
+
+    const { id: fId } = facultyInfo
+
+    const existingCreatedTask = await prisma.taskFaculty.findFirst({
+        where: {
+            facultyId: fId,
+            taskId
+        },
+        include: {
+            task: true
+        }
+    })
+
+    if (!existingCreatedTask) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Faculty does not exist")
+    }
+
+    const taskHintExist = await prisma.taskHint.findMany({
+        where: {
+            taskId: taskId
+        }
+    });
+
+
+    const taskStudentExist = await prisma.taskStudent.findMany({
+        where: {
+            taskId: taskId
+        }
+    });
+
+    const taskFeedbackExist = await prisma.taskFeedback.findMany({
+        where: {
+            taskId: taskId
+        }
+    });
+
+    if (taskHintExist && taskStudentExist && taskFeedbackExist) {
+        const taskDelete = await prisma.$transaction(async (transactionClient) => {
+            await transactionClient.taskHint.deleteMany({
+                where: {
+                    taskId
+                }
+            });
+
+            await transactionClient.taskStudent.deleteMany({
+                where: {
+                    taskId
+                }
+            });
+
+            await transactionClient.taskFeedback.deleteMany({
+                where: {
+                    taskId
+                }
+            });
+
+            await transactionClient.taskFaculty.delete({
+                where: {
+                    taskId_facultyId: {
+                        taskId,
+                        facultyId: fId
+                    }
+                }
+            });
+
+            const task = await transactionClient.task.delete({
+                where: {
+                    id: taskId
+                }
+            });
+
+            if (!task) {
+                throw new ApiError(httpStatus.NOT_FOUND, "Task delete failed")
+            }
+
+            return true
+
+        })
+
+        if (!taskDelete) {
+            throw new ApiError(httpStatus.NOT_FOUND, "Task delete failed")
+        }
+    }
+
+    if (taskHintExist && taskStudentExist) {
+        const taskDelete = await prisma.$transaction(async (transactionClient) => {
+            await transactionClient.taskHint.deleteMany({
+                where: {
+                    taskId
+                }
+            });
+
+            await transactionClient.taskStudent.deleteMany({
+                where: {
+                    taskId
+                }
+            });
+
+            await transactionClient.taskFaculty.delete({
+                where: {
+                    taskId_facultyId: {
+                        taskId,
+                        facultyId: fId
+                    }
+                }
+            });
+
+            const task = await transactionClient.task.delete({
+                where: {
+                    id: taskId
+                }
+            });
+
+            if (!task) {
+                throw new ApiError(httpStatus.NOT_FOUND, "Task delete failed")
+            }
+
+            return true
+
+        })
+
+        if (!taskDelete) {
+            throw new ApiError(httpStatus.NOT_FOUND, "Task delete failed")
+        }
+    }
+
+    if (taskStudentExist && taskFeedbackExist) {
+        const taskDelete = await prisma.$transaction(async (transactionClient) => {
+            await transactionClient.taskStudent.deleteMany({
+                where: {
+                    taskId
+                }
+            });
+
+            await transactionClient.taskFeedback.deleteMany({
+                where: {
+                    taskId
+                }
+            });
+
+            await transactionClient.taskFaculty.delete({
+                where: {
+                    taskId_facultyId: {
+                        taskId,
+                        facultyId: fId
+                    }
+                }
+            });
+
+            const task = await transactionClient.task.delete({
+                where: {
+                    id: taskId
+                }
+            });
+
+            if (!task) {
+                throw new ApiError(httpStatus.NOT_FOUND, "Task delete failed")
+            }
+
+            return true
+
+        })
+
+        if (!taskDelete) {
+            throw new ApiError(httpStatus.NOT_FOUND, "Task delete failed")
+        }
+    }
+
+    if (taskHintExist) {
+        const taskDelete = await prisma.$transaction(async (transactionClient) => {
+            await transactionClient.taskHint.deleteMany({
+                where: {
+                    taskId
+                }
+            });
+
+            await transactionClient.taskFaculty.delete({
+                where: {
+                    taskId_facultyId: {
+                        taskId,
+                        facultyId: fId
+                    }
+                }
+            });
+
+            const task = await transactionClient.task.delete({
+                where: {
+                    id: taskId
+                }
+            });
+
+            if (!task) {
+                throw new ApiError(httpStatus.NOT_FOUND, "Task delete failed")
+            }
+
+            return true
+
+        })
+
+        if (!taskDelete) {
+            throw new ApiError(httpStatus.NOT_FOUND, "Task delete failed")
+        }
+    }
+
+    if (taskStudentExist) {
+        const taskDelete = await prisma.$transaction(async (transactionClient) => {
+            await transactionClient.taskStudent.deleteMany({
+                where: {
+                    taskId
+                }
+            });
+
+            await transactionClient.taskStudent.deleteMany({
+                where: {
+                    taskId
+                }
+            });
+
+            await transactionClient.taskFaculty.delete({
+                where: {
+                    taskId_facultyId: {
+                        taskId,
+                        facultyId: fId
+                    }
+                }
+            });
+
+            const task = await transactionClient.task.delete({
+                where: {
+                    id: taskId
+                }
+            });
+
+            if (!task) {
+                throw new ApiError(httpStatus.NOT_FOUND, "Task delete failed")
+            }
+
+            return true
+
+        })
+
+        if (!taskDelete) {
+            throw new ApiError(httpStatus.NOT_FOUND, "Task delete failed")
+        }
+    }
+
+
+}
+
 const assignTask = async (
     id: string,
     taskId: string,
@@ -2343,5 +2605,6 @@ export const FacultyService = {
     getAllCompleteStudentTasks,
     getAllCompleteTaskStudents,
     assignTaskFeedback,
-    updateTaskFeedback
+    updateTaskFeedback,
+    deleteSpecificTask
 }

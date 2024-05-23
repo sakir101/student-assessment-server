@@ -316,7 +316,7 @@ const assignSkill = async (
         },
     });
 
-    const existingSkillIds:string[] = existingSkills.map((skill) => skill.interestId);
+    const existingSkillIds: string[] = existingSkills.map((skill) => skill.interestId);
     const newSkillsToCreate = payload.filter((skillId) => !existingSkillIds.includes(skillId));
 
     await prisma.skillStudent.createMany({
@@ -1014,19 +1014,81 @@ const unenrollFaculty = async (
         },
     });
 
-    if (existingEnrolledFaculties) {
-        const res = await prisma.facultyEnrollment.deleteMany({
-            where: {
-                studentId: sId,
-                facultyId: {
-                    in: payload,
-                },
+    if (!existingEnrolledFaculties) {
+        throw new ApiError(httpStatus.NOT_FOUND, "No enrolled faculty found");
+    }
 
-            }
-        });
-        if (!res) {
-            throw new ApiError(httpStatus.NOT_FOUND, "Faculty Unenrolled Failed")
+    const existingCreatedTask = await prisma.taskFaculty.findMany({
+        where: {
+            facultyId: payload[0]
+        },
+        include: {
+            task: true
         }
+    })
+
+    const existingCreatedTaskIds = existingCreatedTask.map((task) => task.taskId)
+
+    const studentAssignedTask = await prisma.taskStudent.findMany({
+        where: {
+            studentId: studentInfo.id
+        },
+        include: {
+            task: true
+        }
+    })
+
+    const studentAssignedTaskIds = studentAssignedTask.map((task) => task.taskId)
+
+    const specificFacultyTaskIds = existingCreatedTaskIds.filter(taskId => studentAssignedTaskIds.includes(taskId));
+
+    const taskFeedback = await prisma.taskFeedback.findMany({
+        where: {
+            studentId: studentInfo.id,
+            facultyId: payload[0]
+        }
+    })
+
+    const taskFeedbackIds = taskFeedback.map((feedback) => feedback.taskId)
+
+    if (specificFacultyTaskIds && taskFeedbackIds) {
+        const facultyUnenroll = await prisma.$transaction(async (transactionClient) => {
+            await transactionClient.taskStudent.deleteMany({
+                where: {
+                    taskId: {
+                        in: specificFacultyTaskIds
+                    },
+                    studentId: studentInfo.id
+                }
+            });
+
+            await transactionClient.taskFeedback.deleteMany({
+                where: {
+                    facultyId: payload[0],
+                    studentId: studentInfo.id
+                }
+            });
+
+            const finalRes = await transactionClient.facultyEnrollment.deleteMany({
+                where: {
+                    studentId: sId,
+                    facultyId: {
+                        in: payload,
+                    },
+                }
+            });
+
+            if (!finalRes) {
+                throw new ApiError(httpStatus.NOT_FOUND, "Faculty Unenrolled Failed");
+            }
+
+            return true;
+        });
+
+        if (!facultyUnenroll) {
+            throw new ApiError(httpStatus.NOT_FOUND, "Faculty unenroll failed");
+        }
+
         const enrolledFacultiesData = await prisma.facultyEnrollment.findMany({
             where: {
                 studentId: sId
@@ -1034,12 +1096,79 @@ const unenrollFaculty = async (
             include: {
                 faculty: true
             }
-        })
-        return enrolledFacultiesData
+        });
+
+        return enrolledFacultiesData;
     }
 
-    return ""
+    if (specificFacultyTaskIds) {
+        const facultyUnenroll = await prisma.$transaction(async (transactionClient) => {
+            await transactionClient.taskStudent.deleteMany({
+                where: {
+                    taskId: {
+                        in: specificFacultyTaskIds
+                    },
+                    studentId: studentInfo.id
+                }
+            });
 
+            const finalRes = await transactionClient.facultyEnrollment.deleteMany({
+                where: {
+                    studentId: sId,
+                    facultyId: {
+                        in: payload,
+                    },
+                }
+            });
+
+            if (!finalRes) {
+                throw new ApiError(httpStatus.NOT_FOUND, "Faculty Unenrolled Failed");
+            }
+
+            return true;
+        })
+
+        if (!facultyUnenroll) {
+            throw new ApiError(httpStatus.NOT_FOUND, "Faculty unenroll failed");
+        }
+
+        const enrolledFacultiesData = await prisma.facultyEnrollment.findMany({
+            where: {
+                studentId: sId
+            },
+            include: {
+                faculty: true
+            }
+        });
+
+        return enrolledFacultiesData;
+    }
+
+    else {
+        const finalRes = await prisma.facultyEnrollment.deleteMany({
+            where: {
+                studentId: sId,
+                facultyId: {
+                    in: payload,
+                },
+            }
+        });
+
+        if (!finalRes) {
+            throw new ApiError(httpStatus.NOT_FOUND, "Faculty Unenrolled Failed");
+        }
+
+        const enrolledFacultiesData = await prisma.facultyEnrollment.findMany({
+            where: {
+                studentId: sId
+            },
+            include: {
+                faculty: true
+            }
+        });
+
+        return enrolledFacultiesData;
+    }
 
 }
 

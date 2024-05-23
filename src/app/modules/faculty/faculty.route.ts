@@ -98,4 +98,7 @@ router.delete('/removeTask/:id/:taskId',
 router.delete('/:id/:interestId/related-works',
     FacultyController.deleteRelatedWorksFaculty)
 
+router.delete('/:id/:taskId/delete-specific-task',
+    FacultyController.deleteSpecificTask)
+
 export const FacultyRoutes = router

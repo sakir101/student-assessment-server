@@ -193,9 +193,9 @@ const createFaculty = async (req: Request) => {
 const updateStudentInfo = async (id: string, req: Request) => {
     const file = req.file as IUploadFile;
 
-    console.log(file)
+
     const { student: studentData } = req.body
-    console.log(studentData)
+
 
     if (studentData) {
 
