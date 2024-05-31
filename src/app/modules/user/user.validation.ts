@@ -90,6 +90,64 @@ const facultyFileUploadZodSchema = z.object({
 
 })
 
+const adminFileUploadZodSchema = z.object({
+    password: z.string({
+        required_error: "Password is required"
+    }),
+    email: z.string({
+        required_error: "Email is required"
+    }).email(),
+    admin: z.object({
+        firstName: z.string({
+            required_error: "First name is required"
+        }),
+        middleName: z.string().optional(),
+        lastName: z.string({
+            required_error: "Last name is required"
+        }),
+        gender: z.enum([...gender] as [string, ...string[]], {
+            required_error: 'Gender is required'
+        }),
+        contactNum: z.string({
+            required_error: "Contact Number is required"
+        }),
+        address: z.string({
+            required_error: "Address is required"
+        }),
+        activity: z.string().optional(),
+
+    })
+
+})
+
+const superAdminFileUploadZodSchema = z.object({
+    password: z.string({
+        required_error: "Password is required"
+    }),
+    email: z.string({
+        required_error: "Email is required"
+    }).email(),
+    superAdmin: z.object({
+        firstName: z.string({
+            required_error: "First name is required"
+        }),
+        middleName: z.string().optional(),
+        lastName: z.string({
+            required_error: "Last name is required"
+        }),
+        gender: z.enum([...gender] as [string, ...string[]], {
+            required_error: 'Gender is required'
+        }),
+        contactNum: z.string({
+            required_error: "Contact Number is required"
+        }),
+        address: z.string({
+            required_error: "Address is required"
+        })
+    })
+
+})
+
 const studentUpdateZodSchema = z.object({
     student: z.object({
         studentId: z.string().optional(),
@@ -111,13 +169,38 @@ const facultyUpdateZodSchema = z.object({
         contactNum: z.string().optional(),
         gender: z.enum([...gender] as [string, ...string[]],).optional(),
     })
+})
 
+const adminUpdateZodSchema = z.object({
+    admin: z.object({
+        firstName: z.string().optional(),
+        middleName: z.string().optional(),
+        lastName: z.string().optional(),
+        contactNum: z.string().optional(),
+        address: z.string().optional(),
+        gender: z.enum([...gender] as [string, ...string[]],).optional(),
+    })
+})
+
+const superAdminUpdateZodSchema = z.object({
+    admin: z.object({
+        firstName: z.string().optional(),
+        middleName: z.string().optional(),
+        lastName: z.string().optional(),
+        contactNum: z.string().optional(),
+        address: z.string().optional(),
+        gender: z.enum([...gender] as [string, ...string[]],).optional(),
+    })
 })
 
 export const UserValidation = {
     createStudentZodSchema,
     studentFileUploadZodSchema,
     facultyFileUploadZodSchema,
+    adminFileUploadZodSchema,
+    superAdminFileUploadZodSchema,
     studentUpdateZodSchema,
-    facultyUpdateZodSchema
+    facultyUpdateZodSchema,
+    adminUpdateZodSchema,
+    superAdminUpdateZodSchema
 }

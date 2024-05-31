@@ -11,17 +11,19 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(uuid())
+  id           String       @id @default(uuid())
   role         UserRoles
   password     String
-  email        String    @unique
+  email        String       @unique
   verifiedUser Boolean
   studentId    String?
   facultyId    String?
   adminId      String?
+  superAdminId String?
   students     Student[]
   faculties    Faculty[]
   admin        Admin[]
+  SuperAdmin   SuperAdmin[]
 
   @@map("users")
 }
@@ -78,15 +80,36 @@ model Admin {
   adminId      String
   firstName    String
   lastName     String
-  middleName   String
+  middleName   String?
   profileImage String
   gender       String
+  contactNum   String
+  address      String
+  activity     String?
   user         User     @relation(fields: [userId], references: [id])
   userId       String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   @@map("admins")
+}
+
+model SuperAdmin {
+  id           String   @id @default(uuid())
+  superAdminId String
+  firstName    String
+  lastName     String
+  middleName   String?
+  profileImage String
+  gender       String
+  contactNum   String
+  address      String
+  user         User     @relation(fields: [userId], references: [id])
+  userId       String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("super_admins")
 }
 
 model Token {
@@ -255,4 +278,91 @@ enum Status {
   PartiallyCorrect
   PartiallyWrong
   NotSet
+}
+
+model Job {
+  id             String        @id @default(uuid())
+  title          String
+  jobLink        String
+  desc           String
+  status         String
+  companyWebsite String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  subFields      SubField[]    @relation("JobSubFields")
+  JobSubField    JobSubField[]
+
+  @@map("jobs")
+}
+
+model Course {
+  id             String           @id @default(uuid())
+  title          String
+  courseLink     String
+  desc           String
+  price          String
+  status         String
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  subFields      SubField[]       @relation("CourseSubFields")
+  CourseSubField CourseSubField[]
+
+  @@map("courses")
+}
+
+model SubField {
+  id                  String                @id @default(uuid())
+  title               String
+  desc                String
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  courses             Course[]              @relation("CourseSubFields")
+  CourseSubField      CourseSubField[]
+  jobs                Job[]                 @relation("JobSubFields")
+  JobSubField         JobSubField[]
+  masterFields        MasterField[]         @relation("MasterFieldSubFields")
+  MasterFieldSubField MasterFieldSubField[]
+
+  @@map("sub_fields")
+}
+
+model CourseSubField {
+  courseId   String
+  subFieldId String
+  course     Course   @relation(fields: [courseId], references: [id])
+  subField   SubField @relation(fields: [subFieldId], references: [id])
+
+  @@id([courseId, subFieldId])
+  @@map("course_sub_fields")
+}
+
+model JobSubField {
+  jobId      String
+  subFieldId String
+  job        Job      @relation(fields: [jobId], references: [id])
+  subField   SubField @relation(fields: [subFieldId], references: [id])
+
+  @@id([jobId, subFieldId])
+  @@map("job_sub_fields")
+}
+
+model MasterField {
+  id                  String                @id @default(uuid())
+  title               String
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  subFields           SubField[]            @relation("MasterFieldSubFields")
+  MasterFieldSubField MasterFieldSubField[]
+
+  @@map("master_fields")
+}
+
+model MasterFieldSubField {
+  masterFieldId String
+  subFieldId    String
+  masterField   MasterField @relation(fields: [masterFieldId], references: [id], onDelete: Cascade)
+  subField      SubField    @relation(fields: [subFieldId], references: [id], onDelete: Cascade)
+
+  @@id([masterFieldId, subFieldId])
+  @@map("master_field_sub_fields")
 }

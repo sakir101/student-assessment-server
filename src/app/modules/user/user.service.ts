@@ -111,11 +111,7 @@ const createStudent = async (req: Request) => {
         }
 
         return newUser
-
     }
-
-
-
 }
 
 
@@ -183,6 +179,150 @@ const createFaculty = async (req: Request) => {
 
         if (!newUser) {
             throw new ApiError(httpStatus.BAD_REQUEST, 'Failed to create faculty')
+        }
+
+        return newUser
+
+    }
+}
+
+const createAdmin = async (req: Request) => {
+
+
+    const file = req.file as IUploadFile;
+
+
+    const { admin: adminData, ...userData } = req.body
+
+    if (userData && adminData) {
+        if (file === undefined) {
+            adminData.profileImage = 'https://res.cloudinary.com/dporza1qj/image/upload/v1707104604/profile_sllerv.png'
+        }
+
+        else {
+            const uploadImage: ICloudinaryResponse = await FileUploadHelper.uploadToCloudinary(file)
+
+            if (uploadImage) {
+                adminData.profileImage = uploadImage.secure_url
+            }
+        }
+        const randomDigits = Math.floor(100 + Math.random() * 900);
+
+        userData.verifiedUser = true
+        userData.role = 'admin'
+        adminData.adminId = `admin-00${randomDigits}`
+        userData.password = await bcrypt.hash(
+            userData.password,
+            Number(config.bycrypt_salt_rounds)
+        )
+
+        const newUser = await prisma.$transaction(async (transactionClient) => {
+            const userResult = await transactionClient.user.create({
+                data: userData
+            })
+
+            if (!userResult) {
+                throw new ApiError(httpStatus.BAD_REQUEST, 'Failed to create user')
+            }
+
+            adminData.userId = userResult.id
+            const adminResult = await transactionClient.admin.create({
+                data: adminData
+            })
+
+            if (!adminResult) {
+                throw new ApiError(httpStatus.BAD_REQUEST, 'Failed to create admin')
+            }
+
+            const updateUser = {
+                adminId: adminData.adminId
+            }
+
+            await transactionClient.user.update({
+                where: {
+                    id: userResult.id
+                },
+                data: updateUser
+            })
+
+            return adminResult
+
+        })
+
+        if (!newUser) {
+            throw new ApiError(httpStatus.BAD_REQUEST, 'Failed to create admin')
+        }
+
+        return newUser
+
+    }
+}
+
+const createSuperAdmin = async (req: Request) => {
+
+
+    const file = req.file as IUploadFile;
+
+
+    const { superAdmin: superAdminData, ...userData } = req.body
+
+    if (userData && superAdminData) {
+        if (file === undefined) {
+            superAdminData.profileImage = 'https://res.cloudinary.com/dporza1qj/image/upload/v1707104604/profile_sllerv.png'
+        }
+
+        else {
+            const uploadImage: ICloudinaryResponse = await FileUploadHelper.uploadToCloudinary(file)
+
+            if (uploadImage) {
+                superAdminData.profileImage = uploadImage.secure_url
+            }
+        }
+
+        const randomDigits = Math.floor(100 + Math.random() * 900);
+        userData.verifiedUser = true
+        userData.role = 'super_admin'
+        superAdminData.superAdminId = `super-00${randomDigits}`
+        userData.password = await bcrypt.hash(
+            userData.password,
+            Number(config.bycrypt_salt_rounds)
+        )
+
+        const newUser = await prisma.$transaction(async (transactionClient) => {
+            const userResult = await transactionClient.user.create({
+                data: userData
+            })
+
+            if (!userResult) {
+                throw new ApiError(httpStatus.BAD_REQUEST, 'Failed to create user')
+            }
+
+            superAdminData.userId = userResult.id
+            const superAdminResult = await transactionClient.superAdmin.create({
+                data: superAdminData
+            })
+
+            if (!superAdminResult) {
+                throw new ApiError(httpStatus.BAD_REQUEST, 'Failed to create superAdmin')
+            }
+
+            const updateUser = {
+                superAdminId: superAdminData.superAdminId
+            }
+
+            await transactionClient.user.update({
+                where: {
+                    id: userResult.id
+                },
+                data: updateUser
+            })
+
+            return superAdminResult
+
+        })
+
+        if (!newUser) {
+            throw new ApiError(httpStatus.BAD_REQUEST, 'Failed to create super admin')
         }
 
         return newUser
@@ -301,12 +441,124 @@ const updateFacultyInfo = async (id: string, req: Request) => {
     }
 }
 
+const updateAdminInfo = async (id: string, req: Request) => {
+    const file = req.file as IUploadFile;
+
+
+    const { admin: adminData } = req.body
+
+    if (adminData) {
+
+        const adminInfo = await prisma.admin.findFirst({
+            where: {
+                userId: id
+            },
+        })
+
+        if (!adminInfo) {
+            throw new ApiError(httpStatus.NOT_FOUND, "Admin does not exist")
+        }
+
+        if (file !== undefined) {
+            const uploadImage: ICloudinaryResponse = await FileUploadHelper.uploadToCloudinary(file)
+
+            if (uploadImage) {
+                adminData.profileImage = uploadImage.secure_url
+            }
+
+            else {
+                throw new ApiError(httpStatus.NOT_FOUND, "Image upload failed")
+            }
+        }
+
+        if (file === undefined) {
+            adminData.profileImage = adminInfo.profileImage
+        }
+
+        const updateAdmin = {
+            firstName: adminData.firstName,
+            middleName: adminData.middleName,
+            lastName: adminData.lastName,
+            gender: adminData.gender,
+            contactNum: adminData.contactNum,
+            address: adminData.address,
+            profileImage: adminData.profileImage
+        }
+
+        const updatedAdminResult = await prisma.admin.update({
+            where: { id: adminInfo.id },
+            data: updateAdmin
+        });
+
+        return updatedAdminResult
+
+    }
+}
+
+const updateSuperAdminInfo = async (id: string, req: Request) => {
+    const file = req.file as IUploadFile;
+
+
+    const { superAdmin: superAdminData } = req.body
+
+    if (superAdminData) {
+
+        const superAdminInfo = await prisma.superAdmin.findFirst({
+            where: {
+                userId: id
+            },
+        })
+
+        if (!superAdminInfo) {
+            throw new ApiError(httpStatus.NOT_FOUND, "Super Admin does not exist")
+        }
+
+        if (file !== undefined) {
+            const uploadImage: ICloudinaryResponse = await FileUploadHelper.uploadToCloudinary(file)
+
+            if (uploadImage) {
+                superAdminData.profileImage = uploadImage.secure_url
+            }
+
+            else {
+                throw new ApiError(httpStatus.NOT_FOUND, "Image upload failed")
+            }
+        }
+
+        if (file === undefined) {
+            superAdminData.profileImage = superAdminInfo.profileImage
+        }
+
+        const updateSuperAdmin = {
+            firstName: superAdminData.firstName,
+            middleName: superAdminData.middleName,
+            lastName: superAdminData.lastName,
+            gender: superAdminData.gender,
+            contactNum: superAdminData.contactNum,
+            address: superAdminData.address,
+            profileImage: superAdminData.profileImage
+        }
+
+        const updatedSuperAdminResult = await prisma.superAdmin.update({
+            where: { id: superAdminInfo.id },
+            data: updateSuperAdmin
+        });
+
+        return updatedSuperAdminResult
+
+    }
+}
+
 
 
 
 export const UserService = {
     createStudent,
     createFaculty,
+    createAdmin,
+    createSuperAdmin,
     updateStudentInfo,
-    updateFacultyInfo
+    updateFacultyInfo,
+    updateAdminInfo,
+    updateSuperAdminInfo
 }

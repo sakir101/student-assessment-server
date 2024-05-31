@@ -29,6 +29,32 @@ const createFaculty = catchAsync(async (req: Request, res: Response) => {
     });
 })
 
+const createAdmin = catchAsync(async (req: Request, res: Response) => {
+
+
+    const result = await UserService.createAdmin(req)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'User created successfully',
+        data: result
+    });
+})
+
+const createSuperAdmin = catchAsync(async (req: Request, res: Response) => {
+
+
+    const result = await UserService.createSuperAdmin(req)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'User created successfully',
+        data: result
+    });
+})
+
 const updateStudentInfo = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
     const result = await UserService.updateStudentInfo(id, req)
@@ -53,11 +79,39 @@ const updateFacultyInfo = catchAsync(async (req: Request, res: Response) => {
     });
 })
 
+const updateAdminInfo = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await UserService.updateAdminInfo(id, req)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Admin info updated successfully',
+        data: result
+    });
+})
+
+const updateSuperAdminInfo = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await UserService.updateSuperAdminInfo(id, req)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'Super admin info updated successfully',
+        data: result
+    });
+})
+
 
 
 export const UserController = {
     createStudent,
     createFaculty,
+    createAdmin,
+    createSuperAdmin,
     updateStudentInfo,
-    updateFacultyInfo
+    updateFacultyInfo,
+    updateAdminInfo,
+    updateSuperAdminInfo
 }
