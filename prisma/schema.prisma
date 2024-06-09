@@ -285,7 +285,7 @@ model Job {
   title          String
   jobLink        String
   desc           String
-  status         String
+  status         JobStatus
   companyWebsite String
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
@@ -295,19 +295,29 @@ model Job {
   @@map("jobs")
 }
 
+enum JobStatus {
+  Available
+  NotAvailable
+}
+
 model Course {
   id             String           @id @default(uuid())
   title          String
   courseLink     String
   desc           String
   price          String
-  status         String
+  status         CourseStatus
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   subFields      SubField[]       @relation("CourseSubFields")
   CourseSubField CourseSubField[]
 
   @@map("courses")
+}
+
+enum CourseStatus {
+  Available
+  NotAvailable
 }
 
 model SubField {

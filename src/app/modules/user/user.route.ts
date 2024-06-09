@@ -72,4 +72,7 @@ router.patch('/update-superAdmin/:id',
     }
 )
 
+router.patch('/:id/update-user',
+    UserController.updateUserInfo)
+
 export const UserRoutes = router;

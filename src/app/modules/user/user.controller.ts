@@ -103,6 +103,18 @@ const updateSuperAdminInfo = catchAsync(async (req: Request, res: Response) => {
     });
 })
 
+const updateUserInfo = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await UserService.updateUserInfo(id, req)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: 'User info updated successfully',
+        data: result
+    });
+})
+
 
 
 export const UserController = {
@@ -113,5 +125,6 @@ export const UserController = {
     updateStudentInfo,
     updateFacultyInfo,
     updateAdminInfo,
-    updateSuperAdminInfo
+    updateSuperAdminInfo,
+    updateUserInfo
 }

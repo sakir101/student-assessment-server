@@ -1,3 +1,4 @@
+import { User } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import { Request } from "express";
 import httpStatus from "http-status";
@@ -545,8 +546,31 @@ const updateSuperAdminInfo = async (id: string, req: Request) => {
         });
 
         return updatedSuperAdminResult
-
     }
+}
+
+const updateUserInfo = async (id: string, req: Request): Promise<User> => {
+    const userInfo = await prisma.user.findFirst({
+        where: {
+            id
+        },
+    })
+
+    if (!userInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "User does not exist")
+    }
+
+    const { verifiedUser } = req.body
+
+
+
+    const updatedUserResult = await prisma.user.update({
+        where: { id },
+        data: { verifiedUser }
+    });
+
+    return updatedUserResult
+
 }
 
 
@@ -560,5 +584,6 @@ export const UserService = {
     updateStudentInfo,
     updateFacultyInfo,
     updateAdminInfo,
-    updateSuperAdminInfo
+    updateSuperAdminInfo,
+    updateUserInfo
 }

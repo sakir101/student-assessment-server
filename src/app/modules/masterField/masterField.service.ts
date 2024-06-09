@@ -1,4 +1,4 @@
-import { Interest, Prisma } from "@prisma/client"
+import { MasterField, Prisma } from "@prisma/client"
 import { Request } from "express"
 import httpStatus from "http-status"
 import ApiError from "../../../errors/ApiError"
@@ -6,28 +6,28 @@ import { paginationHelpers } from "../../../helpers/paginationHelper"
 import { IGenericResponse } from "../../../interfaces/common"
 import { IPaginationOptions } from "../../../interfaces/pagination"
 import prisma from "../../../shared/prisma"
-import { interestSearchableFields } from "./interest.constant"
-import { IInterestFilterRequest } from "./interest.interface"
+import { masterFieldSearchableFields } from "./masterField.constant"
+import { IMasterFieldFilterRequest } from "./masterField.interface"
 
-const createInterest = async (interestData: Interest): Promise<Interest> => {
-    const result = await prisma.interest.create({
-        data: interestData
+const createMasterField = async (masterFieldData: MasterField): Promise<MasterField> => {
+    const result = await prisma.masterField.create({
+        data: masterFieldData
     })
     return result
 }
 
-const getAllInterest = async (
-    filters: IInterestFilterRequest,
+const getAllMasterFields = async (
+    filters: IMasterFieldFilterRequest,
     options: IPaginationOptions
-): Promise<IGenericResponse<Interest[]>> => {
+): Promise<IGenericResponse<MasterField[]>> => {
 
-    const { page, limit, skip } = paginationHelpers.calculatePagination(options);
+    const { page, limit } = paginationHelpers.calculatePagination(options);
     const { searchTerm, ...filterData } = filters
 
     const andConditions = []
     if (searchTerm) {
         andConditions.push({
-            OR: interestSearchableFields.map((field) => ({
+            OR: masterFieldSearchableFields.map((field) => ({
                 [field]: {
                     contains: searchTerm,
                     mode: 'insensitive'
@@ -46,10 +46,10 @@ const getAllInterest = async (
         })
     }
 
-    const whereConditions: Prisma.InterestWhereInput =
+    const whereConditions: Prisma.MasterFieldWhereInput =
         andConditions.length > 0 ? { AND: andConditions } : {}
 
-    const result = await prisma.interest.findMany({
+    const result = await prisma.masterField.findMany({
         where: whereConditions,
         orderBy: options.sortBy && options.sortOrder
             ? {
@@ -59,7 +59,7 @@ const getAllInterest = async (
             }
     });
 
-    const total = await prisma.interest.count();
+    const total = await prisma.masterField.count();
 
     return {
         meta: {
@@ -71,44 +71,44 @@ const getAllInterest = async (
     }
 }
 
-const getSingleInterest = async (id: string): Promise<Interest | null> => {
-    const interestInfo = await prisma.interest.findFirst({
+const getSingleMasterField = async (id: string): Promise<MasterField | null> => {
+    const masterFieldInfo = await prisma.masterField.findFirst({
         where: {
             id
         }
     })
 
-    if (!interestInfo) {
-        throw new ApiError(httpStatus.NOT_FOUND, "Interest not found")
+    if (!masterFieldInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "MasterField not found")
     }
 
 
-    return interestInfo;
+    return masterFieldInfo;
 }
 
-const updateInterestInfo = async (id: string, req: Request): Promise<Interest> => {
-    const interestInfo = await prisma.interest.findFirst({
+const updateMasterFieldInfo = async (id: string, req: Request): Promise<MasterField> => {
+    const masterFieldInfo = await prisma.masterField.findFirst({
         where: {
             id
         },
     })
 
-    if (!interestInfo) {
-        throw new ApiError(httpStatus.NOT_FOUND, "Interest does not exist")
+    if (!masterFieldInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Master Field does not exist")
     }
     const { title } = req.body
-    const updatedInterestResult = await prisma.interest.update({
+    const updatedMasterFieldResult = await prisma.masterField.update({
         where: { id },
         data: { title }
     });
 
-    return updatedInterestResult
+    return updatedMasterFieldResult
 }
 
 
-export const InterestService = {
-    createInterest,
-    getAllInterest,
-    getSingleInterest,
-    updateInterestInfo
+export const MasterFieldService = {
+    createMasterField,
+    getAllMasterFields,
+    getSingleMasterField,
+    updateMasterFieldInfo
 }

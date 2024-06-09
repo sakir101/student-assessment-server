@@ -12,4 +12,7 @@ router.get('/',
 router.get('/:id',
     InterestController.getSingleInterest)
 
+router.patch('/:id/update-interest',
+    InterestController.updateInterestInfo)
+
 export const InterestRoutes = router;
