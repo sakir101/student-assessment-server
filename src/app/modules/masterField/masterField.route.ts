@@ -6,6 +6,9 @@ const router = express.Router();
 router.post('/create-masterField',
     MasterFieldController.createMasterField)
 
+router.post('/:id/assign-subField',
+    MasterFieldController.assignSubField)
+
 router.get('/',
     MasterFieldController.getAllMasterFields)
 

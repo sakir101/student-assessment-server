@@ -1,4 +1,4 @@
-import { MasterField, Prisma } from "@prisma/client"
+import { MasterField, MasterFieldSubField, Prisma } from "@prisma/client"
 import { Request } from "express"
 import httpStatus from "http-status"
 import ApiError from "../../../errors/ApiError"
@@ -105,10 +105,57 @@ const updateMasterFieldInfo = async (id: string, req: Request): Promise<MasterFi
     return updatedMasterFieldResult
 }
 
+const assignSubField = async (
+    id: string,
+    payload: string[]
+): Promise<MasterFieldSubField[]> => {
+
+    const masterField = await prisma.masterField.findFirst({
+        where: {
+            id
+        }
+    })
+
+    if (!masterField) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Master field does not exist")
+    }
+
+    const { id: mId } = masterField
+    const existingSubField = await prisma.masterFieldSubField.findMany({
+        where: {
+            masterFieldId: mId,
+            subFieldId: {
+                in: payload,
+            },
+        },
+    });
+
+    const existingSubFieldIds = existingSubField.map((subField) => subField.subFieldId);
+
+    const newSubFieldsToCreate = payload.filter((subFieldId) => !existingSubFieldIds.includes(subFieldId));
+
+    await prisma.masterFieldSubField.createMany({
+        data: newSubFieldsToCreate.map((subFieldId) => ({
+            subFieldId,
+            masterFieldId: mId,
+        })),
+    });
+    const assignSubFieldData = await prisma.masterFieldSubField.findMany({
+        where: {
+            masterFieldId: mId
+        },
+        include: {
+            subField: true
+        }
+    })
+    return assignSubFieldData
+}
+
 
 export const MasterFieldService = {
     createMasterField,
     getAllMasterFields,
     getSingleMasterField,
-    updateMasterFieldInfo
+    updateMasterFieldInfo,
+    assignSubField
 }

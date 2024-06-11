@@ -10,6 +10,12 @@ router.post('/create-subField',
     validateRequest(SubFieldValidation.createSubFieldZodSchema),
     SubFieldController.createSubField)
 
+router.post('/:id/assign-job',
+    SubFieldController.assignJob)
+
+router.post('/:id/assign-course',
+    SubFieldController.assignCourse)
+
 router.get('/',
     SubFieldController.getAllSubFields)
 

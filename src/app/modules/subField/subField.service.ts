@@ -1,4 +1,4 @@
-import { Prisma, SubField } from "@prisma/client";
+import { CourseSubField, JobSubField, Prisma, SubField } from "@prisma/client";
 import { Request } from "express";
 import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiError";
@@ -109,9 +109,103 @@ const updateSubFieldInfo = async (id: string, req: Request): Promise<SubField> =
     return updatedSubFieldResult
 }
 
+const assignJob = async (
+    id: string,
+    payload: string[]
+): Promise<JobSubField[]> => {
+
+    const subField = await prisma.subField.findFirst({
+        where: {
+            id
+        }
+    })
+
+    if (!subField) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Sub field does not exist")
+    }
+
+    const { id: sId } = subField
+    const existingJobField = await prisma.jobSubField.findMany({
+        where: {
+            subFieldId: sId,
+            jobId: {
+                in: payload,
+            },
+        },
+    });
+
+    const existingJobFieldIds = existingJobField.map((subField) => subField.subFieldId);
+
+    const newSubFieldsToCreate = payload.filter((subFieldId) => !existingJobFieldIds.includes(subFieldId));
+
+    await prisma.jobSubField.createMany({
+        data: newSubFieldsToCreate.map((jobId) => ({
+            jobId,
+            subFieldId: sId,
+        })),
+    });
+    const assignJobData = await prisma.jobSubField.findMany({
+        where: {
+            subFieldId: sId
+        },
+        include: {
+            job: true
+        }
+    })
+    return assignJobData
+}
+
+const assignCourse = async (
+    id: string,
+    payload: string[]
+): Promise<CourseSubField[]> => {
+
+    const subField = await prisma.subField.findFirst({
+        where: {
+            id
+        }
+    })
+
+    if (!subField) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Sub field does not exist")
+    }
+
+    const { id: sId } = subField
+    const existingCourseField = await prisma.courseSubField.findMany({
+        where: {
+            subFieldId: sId,
+            courseId: {
+                in: payload,
+            },
+        },
+    });
+
+    const existingCourseFieldIds = existingCourseField.map((subField) => subField.subFieldId);
+
+    const newSubFieldsToCreate = payload.filter((subFieldId) => !existingCourseFieldIds.includes(subFieldId));
+
+    await prisma.courseSubField.createMany({
+        data: newSubFieldsToCreate.map((courseId) => ({
+            courseId,
+            subFieldId: sId,
+        })),
+    });
+    const assignCourseData = await prisma.courseSubField.findMany({
+        where: {
+            subFieldId: sId
+        },
+        include: {
+            course: true
+        }
+    })
+    return assignCourseData
+}
+
 export const SubFieldService = {
     createSubField,
     getAllSubFields,
     getSingleSubField,
-    updateSubFieldInfo
+    updateSubFieldInfo,
+    assignJob,
+    assignCourse
 }

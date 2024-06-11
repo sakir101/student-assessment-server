@@ -60,9 +60,35 @@ const updateSubFieldInfo = catchAsync(async (req: Request, res: Response) => {
     });
 })
 
+const assignJob = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await SubFieldService.assignJob(id, req.body.job)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Assign job data successfully",
+        data: result
+    })
+})
+
+const assignCourse = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await SubFieldService.assignCourse(id, req.body.course)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Assign course data successfully",
+        data: result
+    })
+})
+
 export const SubFieldController = {
     createSubField,
     getAllSubFields,
     getSingleSubField,
-    updateSubFieldInfo
+    updateSubFieldInfo,
+    assignJob,
+    assignCourse
 }

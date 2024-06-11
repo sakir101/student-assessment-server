@@ -60,9 +60,22 @@ const updateMasterFieldInfo = catchAsync(async (req: Request, res: Response) => 
     });
 })
 
+const assignSubField = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await MasterFieldService.assignSubField(id, req.body.subField)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Assign sub field data successfully",
+        data: result
+    })
+})
+
 export const MasterFieldController = {
     createMasterField,
     getAllMasterFields,
     getSingleMasterField,
-    updateMasterFieldInfo
+    updateMasterFieldInfo,
+    assignSubField
 }
