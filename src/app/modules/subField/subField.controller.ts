@@ -8,7 +8,7 @@ import { SubFieldService } from "./subField.service";
 
 const createSubField = catchAsync(async (req: Request, res: Response) => {
 
-    const result = await SubFieldService.createSubField(req.body)
+    const result = await SubFieldService.createSubField(req)
 
     sendResponse(res, {
         statusCode: httpStatus.OK,

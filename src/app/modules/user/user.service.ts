@@ -351,7 +351,6 @@ const updateStudentInfo = async (id: string, req: Request) => {
         }
 
         if (file !== undefined) {
-            console.log("Not")
             const uploadImage: ICloudinaryResponse = await FileUploadHelper.uploadToCloudinary(file)
 
             if (uploadImage) {
@@ -364,7 +363,6 @@ const updateStudentInfo = async (id: string, req: Request) => {
         }
 
         if (file === undefined) {
-            console.log("yeas")
             studentData.profileImage = studentInfo.profileImage
         }
 

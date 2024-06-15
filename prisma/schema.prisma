@@ -201,6 +201,7 @@ enum UserRoles {
   student
   faculty
   admin
+  super_admin
 }
 
 model FacultyEnrollment {
@@ -324,6 +325,7 @@ model SubField {
   id                  String                @id @default(uuid())
   title               String
   desc                String
+  img                 String?
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
   courses             Course[]              @relation("CourseSubFields")
@@ -359,6 +361,7 @@ model JobSubField {
 model MasterField {
   id                  String                @id @default(uuid())
   title               String
+  category            String
   createdAt           DateTime              @default(now())
   updatedAt           DateTime              @updatedAt
   subFields           SubField[]            @relation("MasterFieldSubFields")

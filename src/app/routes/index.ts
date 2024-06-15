@@ -1,4 +1,5 @@
 import express from 'express';
+import { AdminRoutes } from '../modules/admin/admin.route';
 import { AuthRoutes } from '../modules/auth/auth.route';
 import { CareerRoutes } from '../modules/careerPredict/careerPredict.route';
 import { courseRoutes } from '../modules/course/course.route';
@@ -8,6 +9,7 @@ import { JobRoutes } from '../modules/job/job.route';
 import { MasterFieldRoutes } from '../modules/masterField/masterField.route';
 import { StudentRoutes } from '../modules/student/student.route';
 import { SubFieldRoutes } from '../modules/subField/subField.route';
+import { SuperAdminRoutes } from '../modules/superAdmin/superAdmin.route';
 import { TaskRoutes } from '../modules/task/task.route';
 import { TokenRoutes } from '../modules/token/token.route';
 import { UserRoutes } from '../modules/user/user.route';
@@ -64,6 +66,14 @@ const moduleRoutes = [
   {
     path: "/job",
     route: JobRoutes
+  },
+  {
+    path: "/superAdmin",
+    route: SuperAdminRoutes
+  },
+  {
+    path: "/admin",
+    route: AdminRoutes
   },
 ];
 

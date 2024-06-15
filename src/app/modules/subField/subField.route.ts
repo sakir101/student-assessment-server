@@ -1,14 +1,20 @@
-import express from 'express';
-import validateRequest from '../../middlewares/validateRequest';
+import express, { NextFunction, Request, Response } from 'express';
+import { FileUploadHelper } from '../../../helpers/FileUploadHelper';
 import { SubFieldController } from './subField.controller';
 import { SubFieldValidation } from './subField.validation';
 
 
 const router = express.Router();
 
+
+
 router.post('/create-subField',
-    validateRequest(SubFieldValidation.createSubFieldZodSchema),
-    SubFieldController.createSubField)
+    FileUploadHelper.upload.single('file'),
+    (req: Request, res: Response, next: NextFunction) => {
+        req.body = SubFieldValidation.createSubFieldZodSchema.parse(JSON.parse(req.body.data))
+        return SubFieldController.createSubField(req, res, next)
+    }
+)
 
 router.post('/:id/assign-job',
     SubFieldController.assignJob)
@@ -23,7 +29,11 @@ router.get('/:id',
     SubFieldController.getSingleSubField)
 
 router.patch('/:id/update-SubField',
-    validateRequest(SubFieldValidation.updateSubFieldZodSchema),
-    SubFieldController.updateSubFieldInfo)
+    FileUploadHelper.upload.single('file'),
+    (req: Request, res: Response, next: NextFunction) => {
+        req.body = SubFieldValidation.updateSubFieldZodSchema.parse(JSON.parse(req.body.data))
+        return SubFieldController.updateSubFieldInfo(req, res, next)
+    }
+)
 
 export const SubFieldRoutes = router;

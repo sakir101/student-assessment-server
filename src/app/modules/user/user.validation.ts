@@ -183,7 +183,7 @@ const adminUpdateZodSchema = z.object({
 })
 
 const superAdminUpdateZodSchema = z.object({
-    admin: z.object({
+    superAdmin: z.object({
         firstName: z.string().optional(),
         middleName: z.string().optional(),
         lastName: z.string().optional(),

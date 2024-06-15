@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const createSubFieldZodSchema = z.object({
-    body: z.object({
+    subField: z.object({
         title: z.string({
             required_error: "Title is required"
         }),
@@ -13,7 +13,7 @@ const createSubFieldZodSchema = z.object({
 })
 
 const updateSubFieldZodSchema = z.object({
-    body: z.object({
+    subField: z.object({
         title: z.string().optional(),
         desc: z.string().optional(),
     })

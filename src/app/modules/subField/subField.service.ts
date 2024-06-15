@@ -2,18 +2,40 @@ import { CourseSubField, JobSubField, Prisma, SubField } from "@prisma/client";
 import { Request } from "express";
 import httpStatus from "http-status";
 import ApiError from "../../../errors/ApiError";
+import { FileUploadHelper } from "../../../helpers/FileUploadHelper";
 import { paginationHelpers } from "../../../helpers/paginationHelper";
 import { IGenericResponse } from "../../../interfaces/common";
+import { ICloudinaryResponse, IUploadFile } from "../../../interfaces/file";
 import { IPaginationOptions } from "../../../interfaces/pagination";
 import prisma from "../../../shared/prisma";
 import { subFieldSearchableFields } from "./subField.constant";
 import { ISubFieldFilterRequest } from "./subField.interface";
 
-const createSubField = async (SubFieldData: SubField): Promise<SubField> => {
-    const result = await prisma.subField.create({
-        data: SubFieldData
-    })
-    return result
+const createSubField = async (req: Request) => {
+    const file = req.file as IUploadFile;
+    const { subField: subFieldData } = req.body
+    if (subFieldData) {
+        if (file === undefined) {
+            subFieldData.img = 'https://res.cloudinary.com/dporza1qj/image/upload/v1718364467/consultingIT_nqvwkb.jpg'
+
+        }
+
+        else {
+            const uploadImage: ICloudinaryResponse = await FileUploadHelper.uploadToCloudinary(file)
+
+            if (uploadImage) {
+                subFieldData.img = uploadImage.secure_url
+            }
+        }
+
+        const result = await prisma.subField.create({
+            data: subFieldData
+        })
+
+        return result
+    }
+
+
 }
 
 const getAllSubFields = async (
@@ -86,7 +108,7 @@ const getSingleSubField = async (id: string): Promise<SubField | null> => {
     return SubFieldInfo;
 }
 
-const updateSubFieldInfo = async (id: string, req: Request): Promise<SubField> => {
+const updateSubFieldInfo = async (id: string, req: Request) => {
     const SubFieldInfo = await prisma.subField.findFirst({
         where: {
             id
@@ -96,17 +118,43 @@ const updateSubFieldInfo = async (id: string, req: Request): Promise<SubField> =
     if (!SubFieldInfo) {
         throw new ApiError(httpStatus.NOT_FOUND, "Sub Field does not exist")
     }
-    const { title, desc } = req.body
-    const updatedSubFieldData = {
-        title,
-        desc
-    }
-    const updatedSubFieldResult = await prisma.subField.update({
-        where: { id },
-        data: updatedSubFieldData
-    });
 
-    return updatedSubFieldResult
+    const file = req.file as IUploadFile;
+    const { subField: subFieldData } = req.body
+
+    if (subFieldData) {
+
+        if (file !== undefined) {
+            const uploadImage: ICloudinaryResponse = await FileUploadHelper.uploadToCloudinary(file)
+
+            if (uploadImage) {
+                subFieldData.img = uploadImage.secure_url
+            }
+
+            else {
+                throw new ApiError(httpStatus.NOT_FOUND, "Image upload failed")
+            }
+        }
+
+        if (file === undefined) {
+            subFieldData.img = SubFieldInfo.img
+        }
+
+        const { title, desc, img } = subFieldData
+        const updatedSubFieldData = {
+            title,
+            desc,
+            img
+        }
+
+        const updatedSubFieldResult = await prisma.subField.update({
+            where: { id },
+            data: updatedSubFieldData
+        });
+
+        return updatedSubFieldResult
+    }
+
 }
 
 const assignJob = async (
