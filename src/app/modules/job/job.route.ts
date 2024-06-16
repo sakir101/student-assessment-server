@@ -22,4 +22,7 @@ router.patch('/:id/update-Job',
     validateRequest(JobValidation.updateJobZodSchema),
     JobController.updateJobInfo)
 
+router.delete('/:id/delete-Job',
+    JobController.deleteJobInfo)
+
 export const JobRoutes = router;

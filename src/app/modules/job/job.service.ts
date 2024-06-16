@@ -206,9 +206,34 @@ const updateJobInfo = async (id: string, req: Request): Promise<Job> => {
     return updatedJobResult
 }
 
+const deleteJobInfo = async (id: string): Promise<Job | ''> => {
+    const JobInfo = await prisma.job.findFirst({
+        where: {
+            id
+        },
+    })
+
+    if (!JobInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Job does not exist")
+    }
+
+    const deleteJobResult = await prisma.job.delete({
+        where: { id }
+    });
+
+    if (!deleteJobResult) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Failed to delete")
+    }
+
+
+    return ""
+
+}
+
 export const JobService = {
     createJob,
     getAllJobs,
     getSingleJob,
-    updateJobInfo
+    updateJobInfo,
+    deleteJobInfo
 }

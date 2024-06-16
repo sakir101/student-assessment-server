@@ -206,9 +206,34 @@ const updateCourseInfo = async (id: string, req: Request): Promise<Course> => {
     return updatedCourseResult
 }
 
+const deleteCourseInfo = async (id: string): Promise<Course | ''> => {
+    const CourseInfo = await prisma.course.findFirst({
+        where: {
+            id
+        },
+    })
+
+    if (!CourseInfo) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Course does not exist")
+    }
+
+    const deleteCourseResult = await prisma.course.delete({
+        where: { id }
+    });
+
+    if (!deleteCourseResult) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Failed to delete")
+    }
+
+
+    return ""
+
+}
+
 export const CourseService = {
     createCourse,
     getAllCourses,
     getSingleCourse,
-    updateCourseInfo
+    updateCourseInfo,
+    deleteCourseInfo
 }

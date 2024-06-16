@@ -21,4 +21,7 @@ router.patch('/:id/update-course',
     validateRequest(CourseValidation.updateCourseZodSchema),
     CourseController.updateCourseInfo)
 
+router.delete('/:id/delete-course',
+    CourseController.deleteCourseInfo)
+
 export const courseRoutes = router;
