@@ -22,11 +22,29 @@ router.post('/:id/assign-job',
 router.post('/:id/assign-course',
     SubFieldController.assignCourse)
 
+router.post('/:id/unassign-job',
+    SubFieldController.unassignJob)
+
+router.post('/:id/unassign-course',
+    SubFieldController.unassignCourse)
+
 router.get('/',
     SubFieldController.getAllSubFields)
 
 router.get('/:id',
     SubFieldController.getSingleSubField)
+
+router.get('/:id/get-assign-job',
+    SubFieldController.getAssignJob)
+
+router.get('/:id/get-unassign-job',
+    SubFieldController.getUnassignJob)
+
+router.get('/:id/get-assign-course',
+    SubFieldController.getAssignCourse)
+
+router.get('/:id/get-unassign-course',
+    SubFieldController.getUnassignCourse)
 
 router.patch('/:id/update-SubField',
     FileUploadHelper.upload.single('file'),

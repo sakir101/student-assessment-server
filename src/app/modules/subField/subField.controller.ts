@@ -84,11 +84,106 @@ const assignCourse = catchAsync(async (req: Request, res: Response) => {
     })
 })
 
+const unassignJob = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await SubFieldService.unassignJob(id, req.body.job)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Unassign job data successfully",
+        data: result
+    })
+})
+
+const getAssignJob = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const filters = pick(req.query, subFieldFilterableFields)
+    const options = pick(req.query, ['size', 'page', 'sortBy', 'sortOrder'])
+    const result = await SubFieldService.getAssignJob(id, filters, options)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Get Assign job data successfully",
+        meta: result.meta,
+        data: result.data
+    })
+})
+
+const getUnassignJob = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const filters = pick(req.query, subFieldFilterableFields)
+    const options = pick(req.query, ['size', 'page', 'sortBy', 'sortOrder'])
+    const result = await SubFieldService.getUnassignJob(id, filters, options)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Get unassign job data successfully",
+        meta: result.meta,
+        data: result.data
+    })
+})
+
+const unassignCourse = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await SubFieldService.unassignCourse(id, req.body.course)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Unassign course data successfully",
+        data: result
+    })
+})
+
+const getAssignCourse = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const filters = pick(req.query, subFieldFilterableFields)
+    const options = pick(req.query, ['size', 'page', 'sortBy', 'sortOrder'])
+    const result = await SubFieldService.getAssignCourse(id, filters, options)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Get Assign course data successfully",
+        meta: result.meta,
+        data: result.data
+    })
+})
+
+const getUnassignCourse = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const filters = pick(req.query, subFieldFilterableFields)
+    const options = pick(req.query, ['size', 'page', 'sortBy', 'sortOrder'])
+    const result = await SubFieldService.getUnassignCourse(id, filters, options)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Get unassign course data successfully",
+        meta: result.meta,
+        data: result.data
+    })
+})
+
+
 export const SubFieldController = {
     createSubField,
     getAllSubFields,
     getSingleSubField,
     updateSubFieldInfo,
     assignJob,
-    assignCourse
+    assignCourse,
+    unassignJob,
+    getAssignJob,
+    getUnassignJob,
+    unassignCourse,
+    getAssignCourse,
+    getUnassignCourse
 }

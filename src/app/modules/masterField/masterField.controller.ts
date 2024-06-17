@@ -72,10 +72,57 @@ const assignSubField = catchAsync(async (req: Request, res: Response) => {
     })
 })
 
+const unassignSubField = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const result = await MasterFieldService.unassignSubField(id, req.body.subField)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "unassign sub field data successfully",
+        data: result
+    })
+})
+
+const getAssignSubField = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const filters = pick(req.query, masterFieldFilterableFields)
+    const options = pick(req.query, ['size', 'page', 'sortBy', 'sortOrder'])
+    const result = await MasterFieldService.getAssignSubField(id, filters, options)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Get Assign sub field data successfully",
+        meta: result.meta,
+        data: result.data
+    })
+})
+
+const getUnassignSubField = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const filters = pick(req.query, masterFieldFilterableFields)
+    const options = pick(req.query, ['size', 'page', 'sortBy', 'sortOrder'])
+    const result = await MasterFieldService.getUnassignSubField(id, filters, options)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Get unassign sub field data successfully",
+        meta: result.meta,
+        data: result.data
+    })
+})
+
 export const MasterFieldController = {
     createMasterField,
     getAllMasterFields,
     getSingleMasterField,
     updateMasterFieldInfo,
-    assignSubField
+    assignSubField,
+    getAssignSubField,
+    getUnassignSubField,
+    unassignSubField
 }
