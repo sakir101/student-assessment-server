@@ -72,10 +72,27 @@ const deleteCourseInfo = catchAsync(async (req: Request, res: Response) => {
     });
 })
 
+const getAllSpecificCourse = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const filters = pick(req.query, courseFilterableFields)
+    const options = pick(req.query, ['size', 'page', 'sortBy', 'sortOrder'])
+    const result = await CourseService.getAllSpecificCourse(id, filters, options)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Course data retrieved successfully",
+        meta: result.meta,
+        data: result.data
+    })
+})
+
+
 export const CourseController = {
     createCourse,
     getAllCourses,
     getSingleCourse,
     updateCourseInfo,
-    deleteCourseInfo
+    deleteCourseInfo,
+    getAllSpecificCourse
 }

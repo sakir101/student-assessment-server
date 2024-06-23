@@ -132,6 +132,13 @@ const getAllFaculties = async (
 
     const result = await prisma.faculty.findMany({
         where: whereConditions,
+        include: {
+            user: {
+                select: {
+                    verifiedUser: true,
+                },
+            },
+        },
         orderBy: options.sortBy && options.sortOrder
             ? {
                 [options.sortBy]: options.sortOrder
@@ -186,6 +193,13 @@ const getAllStudents = async (
 
     const result = await prisma.student.findMany({
         where: whereConditions,
+        include: {
+            user: {
+                select: {
+                    verifiedUser: true,
+                },
+            },
+        },
         orderBy: options.sortBy && options.sortOrder
             ? {
                 [options.sortBy]: options.sortOrder

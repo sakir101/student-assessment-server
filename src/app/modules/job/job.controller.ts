@@ -72,10 +72,26 @@ const deleteJobInfo = catchAsync(async (req: Request, res: Response) => {
     });
 })
 
+const getAllSpecificJob = catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const filters = pick(req.query, jobFilterableFields)
+    const options = pick(req.query, ['size', 'page', 'sortBy', 'sortOrder'])
+    const result = await JobService.getAllSpecificJob(id, filters, options)
+
+    sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Job data retrieved successfully",
+        meta: result.meta,
+        data: result.data
+    })
+})
+
 export const JobController = {
     createJob,
     getAllJobs,
     getSingleJob,
     updateJobInfo,
-    deleteJobInfo
+    deleteJobInfo,
+    getAllSpecificJob
 }

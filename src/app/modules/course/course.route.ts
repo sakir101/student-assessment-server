@@ -17,6 +17,9 @@ router.get('/',
 router.get('/:id',
     CourseController.getSingleCourse)
 
+router.get('/:id/getSpecificCourse',
+    CourseController.getAllSpecificCourse)
+
 router.patch('/:id/update-course',
     validateRequest(CourseValidation.updateCourseZodSchema),
     CourseController.updateCourseInfo)

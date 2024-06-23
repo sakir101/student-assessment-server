@@ -103,7 +103,7 @@ const careerPrediction = async (id: string) => {
         const interestData = obj[key];
         console.log(interestData)
 
-        const apiUrl = "https://d2bc-59-153-103-196.ngrok-free.app";
+        const apiUrl = "https://47d5-59-153-103-204.ngrok-free.app";
 
         const response = await axios.post(apiUrl, { interest: interestData });
 

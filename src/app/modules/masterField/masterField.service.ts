@@ -53,6 +53,9 @@ const getAllMasterFields = async (
 
     const result = await prisma.masterField.findMany({
         where: whereConditions,
+        include: {
+            subFields: true
+        },
         orderBy: options.sortBy && options.sortOrder
             ? {
                 [options.sortBy]: options.sortOrder
@@ -134,14 +137,35 @@ const assignSubField = async (
 
     const existingSubFieldIds = existingSubField.map((subField) => subField.subFieldId);
 
+
+
     const newSubFieldsToCreate = payload.filter((subFieldId) => !existingSubFieldIds.includes(subFieldId));
 
-    await prisma.masterFieldSubField.createMany({
+
+    const masterFieldSubField = await prisma.masterFieldSubField.createMany({
         data: newSubFieldsToCreate.map((subFieldId) => ({
             subFieldId,
             masterFieldId: mId,
         })),
     });
+
+    if (!masterFieldSubField) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Master field sub field created failed")
+    }
+
+    const updatedMasterField = await prisma.masterField.update({
+        where: { id: masterField.id },
+        data: {
+            subFields: {
+                connect: newSubFieldsToCreate.map(subFieldId => ({ id: subFieldId }))
+            }
+        }
+    });
+
+    if (!updatedMasterField) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Master field update failed")
+    }
+
     const assignSubFieldData = await prisma.masterFieldSubField.findMany({
         where: {
             masterFieldId: mId
@@ -339,7 +363,7 @@ const unassignSubField = async (
 
     const subFieldIdsToUnassign = existingSubFields.map(subField => subField.subFieldId);
 
-    await prisma.masterFieldSubField.deleteMany({
+    const masterFieldSubField = await prisma.masterFieldSubField.deleteMany({
         where: {
             masterFieldId: mId,
             subFieldId: {
@@ -347,6 +371,24 @@ const unassignSubField = async (
             },
         },
     });
+
+    if (!masterFieldSubField) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Failed to delete master field sub filed");
+    }
+
+    const updatedMasterField = await prisma.masterField.update({
+        where: { id: mId },
+        data: {
+            subFields: {
+                disconnect: subFieldIdsToUnassign.map(subFieldId => ({ id: subFieldId }))
+            }
+        }
+    });
+
+    if (!updatedMasterField) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Failed to update master field");
+    }
+
 
     const remainingSubFields = await prisma.masterFieldSubField.findMany({
         where: {

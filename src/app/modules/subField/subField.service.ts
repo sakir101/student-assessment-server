@@ -165,7 +165,7 @@ const assignJob = async (
     id: string,
     payload: string[]
 ): Promise<JobSubField[]> => {
-
+    console.log(id)
     const subField = await prisma.subField.findFirst({
         where: {
             id
@@ -177,7 +177,7 @@ const assignJob = async (
     }
 
     const { id: sId } = subField
-    const existingJobField = await prisma.jobSubField.findMany({
+    const existingJob = await prisma.jobSubField.findMany({
         where: {
             subFieldId: sId,
             jobId: {
@@ -186,16 +186,34 @@ const assignJob = async (
         },
     });
 
-    const existingJobFieldIds = existingJobField.map((subField) => subField.subFieldId);
+    const existingJobIds = existingJob.map((job) => job.jobId);
 
-    const newSubFieldsToCreate = payload.filter((subFieldId) => !existingJobFieldIds.includes(subFieldId));
+    const newJobsToCreate = payload.filter((jobId) => !existingJobIds.includes(jobId));
 
-    await prisma.jobSubField.createMany({
-        data: newSubFieldsToCreate.map((jobId) => ({
+    const jobSubField = await prisma.jobSubField.createMany({
+        data: newJobsToCreate.map((jobId) => ({
             jobId,
             subFieldId: sId,
         })),
     });
+
+    if (!jobSubField) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Failed to create job sub field")
+    }
+
+    const updatedSubField = await prisma.subField.update({
+        where: { id: subField.id },
+        data: {
+            jobs: {
+                connect: newJobsToCreate.map(jobId => ({ id: jobId }))
+            }
+        }
+    });
+
+    if (!updatedSubField) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Sub field update failed")
+    }
+
     const assignJobData = await prisma.jobSubField.findMany({
         where: {
             subFieldId: sId
@@ -223,7 +241,7 @@ const assignCourse = async (
     }
 
     const { id: sId } = subField
-    const existingCourseField = await prisma.courseSubField.findMany({
+    const existingCourse = await prisma.courseSubField.findMany({
         where: {
             subFieldId: sId,
             courseId: {
@@ -232,16 +250,34 @@ const assignCourse = async (
         },
     });
 
-    const existingCourseFieldIds = existingCourseField.map((subField) => subField.subFieldId);
+    const existingCourseIds = existingCourse.map((course) => course.courseId);
 
-    const newSubFieldsToCreate = payload.filter((subFieldId) => !existingCourseFieldIds.includes(subFieldId));
+    const newCoursesToCreate = payload.filter((courseId) => !existingCourseIds.includes(courseId));
 
-    await prisma.courseSubField.createMany({
-        data: newSubFieldsToCreate.map((courseId) => ({
+    const courseSubFiled = await prisma.courseSubField.createMany({
+        data: newCoursesToCreate.map((courseId) => ({
             courseId,
             subFieldId: sId,
         })),
     });
+
+    if (!courseSubFiled) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Failed to create course sub field")
+    }
+
+    const updatedSubField = await prisma.subField.update({
+        where: { id: subField.id },
+        data: {
+            courses: {
+                connect: newCoursesToCreate.map(courseId => ({ id: courseId }))
+            }
+        }
+    });
+
+    if (!updatedSubField) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Sub field update failed")
+    }
+
     const assignCourseData = await prisma.courseSubField.findMany({
         where: {
             subFieldId: sId
@@ -439,7 +475,7 @@ const unassignJob = async (
 
     const jobIdsToUnassign = existingJobs.map(Job => Job.jobId);
 
-    await prisma.jobSubField.deleteMany({
+    const jobSubField = await prisma.jobSubField.deleteMany({
         where: {
             subFieldId: sId,
             jobId: {
@@ -447,6 +483,23 @@ const unassignJob = async (
             },
         },
     });
+
+    if (!jobSubField) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Failed to delete job sub field");
+    }
+
+    const updatedSubField = await prisma.subField.update({
+        where: { id: sId },
+        data: {
+            jobs: {
+                disconnect: jobIdsToUnassign.map(jobId => ({ id: jobId }))
+            }
+        }
+    });
+
+    if (!updatedSubField) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Failed to update sub field");
+    }
 
     const remainingJobs = await prisma.jobSubField.findMany({
         where: {
@@ -459,6 +512,7 @@ const unassignJob = async (
 
     return remainingJobs;
 };
+
 const getAssignCourse = async (
     id: string,
     filters: ICourseFilterRequest,

@@ -18,6 +18,9 @@ router.get('/',
 router.get('/:id',
     JobController.getSingleJob)
 
+router.get('/:id/getSpecificJob',
+    JobController.getAllSpecificJob)
+
 router.patch('/:id/update-Job',
     validateRequest(JobValidation.updateJobZodSchema),
     JobController.updateJobInfo)
